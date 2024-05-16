@@ -5,7 +5,6 @@ using System.Collections;
 using TMPro;
 using System.Collections.Generic;
 
-
 public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] private SpellBook spellBook;
@@ -40,23 +39,19 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     private PointerEventData currentEventData;
     private float cooldownTimeRemaining = 0f;
 
-
     private void Awake()
     {
         cardImage = GetComponent<RawImage>();
         startPosition = transform.position;
         originalParent = transform.parent;
-
         PickRandomSpell();
     }
-
 
     private void OnEnable()
     {
         transform.position = startPosition;
         transform.SetParent(originalParent);
     }
-
 
     private void Update()
     {
@@ -94,7 +89,6 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         }
     }
 
-
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (isRecharging) return;
@@ -112,13 +106,12 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
         // Activate spell preview only if the spell has one
         if ((masteryLevelTier == 1 && spellBook.spells[currentSpellIndex].basicSpellPreview != null) ||
-           (masteryLevelTier == 2 && spellBook.spells[currentSpellIndex].flawlessSpellPreview != null) ||
-           (masteryLevelTier == 3 && spellBook.spells[currentSpellIndex].masterfulSpellPreview != null))
+            (masteryLevelTier == 2 && spellBook.spells[currentSpellIndex].flawlessSpellPreview != null) ||
+            (masteryLevelTier == 3 && spellBook.spells[currentSpellIndex].masterfulSpellPreview != null))
         {
             StartCoroutine(ShowSpellPreview());
         }
     }
-
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -133,7 +126,6 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             transform.position = Input.mousePosition;
         }
     }
-
 
     public void OnEndDrag(PointerEventData eventData)
     {
@@ -166,7 +158,8 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
                 TriggerCardEffect(eventData.position);
             }
         }
-        else {
+        else
+        {
             audioSource.clip = CancelDrawCardAudio;
             audioSource.Play();
         }
@@ -175,7 +168,6 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         spellCancelled = false;
         spellDiscarded = false;
     }
-
 
     private void PickRandomSpell()
     {
@@ -191,7 +183,6 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             }
         }
 
-     
         currentSpellIndex = spellWeightedIndices[Random.Range(0, spellWeightedIndices.Count)];
         masteryLevelTier = spellMastery.GetSpellMasteryLevel(spellBook.spells[currentSpellIndex].name);
 
@@ -208,7 +199,6 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             cardImage.texture = spellBook.spells[currentSpellIndex].masterfulCardSprite;
         }
     }
-
 
     private IEnumerator ShowSpellPreview()
     {
@@ -235,7 +225,6 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             UpdateCastingAreaPosition();
         }
     }
-
 
     private void TriggerCardEffect(Vector3 screenPosition)
     {
@@ -277,7 +266,6 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         }
     }
 
-
     public void StartRechargeSpell(float cooldownDuration = -1f)
     {
         if (cooldownDuration == -1f)
@@ -293,7 +281,6 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         cardImage.texture = rechargeCardTexture;
     }
 
-
     private void FinishRecharge()
     {
         cardImage.color = Color.white;
@@ -303,7 +290,6 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
         PickRandomSpell();
     }
-
 
     private void UpdateCastingAreaPosition()
     {
