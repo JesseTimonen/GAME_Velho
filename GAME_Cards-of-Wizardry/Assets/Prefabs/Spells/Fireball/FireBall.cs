@@ -1,0 +1,164 @@
+using System.Collections;
+using UnityEngine;
+using UnityEngine.Rendering.Universal;
+
+
+public class FireBall : MonoBehaviour
+{
+    [Header("Base Stats")]
+    [SerializeField] private float speed = 10f;
+    [SerializeField] private float explosionRadius = 1f;
+    [SerializeField] private int minDamage = 80;
+    [SerializeField] private int maxDamage = 105;
+    [SerializeField] private float burnDuration = 0f;
+    [SerializeField] private float maxLifetime = 10f;
+
+    [Header("Fragments")]
+    [SerializeField] private bool spawnFragments = false;
+    [SerializeField] private GameObject fireBallFragment;
+    [SerializeField] private bool isFragment = false;
+
+    private AudioSource audioSource;
+    private Vector3 direction;
+    private Light2D light2D;
+    private BoxCollider2D boxCollider;
+    private bool hasExploded = false;
+
+
+    void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+        boxCollider = GetComponent<BoxCollider2D>();
+
+        if (!isFragment)
+        {
+            light2D = GetComponent<Light2D>();
+            Vector3 targetPosition = transform.position;
+            transform.position = GameManager.Instance.GetPlayerTransform().position;
+            direction = (targetPosition - transform.position).normalized;
+        }
+
+        Invoke("DestoryGameObject", maxLifetime);
+    }
+
+
+    void Update()
+    {
+        if (!hasExploded)
+        {
+            transform.position += direction * speed * Time.deltaTime;
+        }
+    }
+
+
+    // Collision for actual fireball
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (!hasExploded && !isFragment)
+        {
+            Explode();
+            boxCollider.enabled = false;
+        }
+    }
+
+
+    // Collision for fragments
+    private void OnTriggerEnter2D(Collider2D collider)
+    {
+        if (collider.CompareTag("Enemy") && isFragment)
+        {
+            EnemyStats enemy = collider.GetComponent<EnemyStats>();
+            float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
+            float damageDealth = Random.Range(minDamage, maxDamage + 1);
+            enemy.TakeDamage(Mathf.RoundToInt(playerDamageModifier * damageDealth));
+            enemy.SetOnFire(burnDuration);
+            Destroy(gameObject);
+        }
+    }
+
+
+    private void Explode()
+    {
+        audioSource.Play();
+
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
+        foreach (var hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("Enemy"))
+            {
+                EnemyStats enemy = hitCollider.GetComponent<EnemyStats>();
+                float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
+                float damageDealth = Random.Range(minDamage, maxDamage + 1);
+                enemy.TakeDamage(Mathf.RoundToInt(playerDamageModifier * damageDealth));
+
+                if (burnDuration > 0)
+                {
+                    enemy.SetOnFire(burnDuration);
+                }
+
+                if (spawnFragments)
+                {
+                    SpawnFireFragments();
+                }
+            }
+        }
+
+        hasExploded = true;
+        CancelInvoke();
+        StartCoroutine(AnimateLightAndDestroy());
+    }
+
+
+    private void SpawnFireFragments()
+    {
+        int numberOfFireballs = 5;
+        float angleStep = 360f / numberOfFireballs;
+        float startAngle = 0f;
+
+        for (int i = 0; i < numberOfFireballs; i++)
+        {
+            float fireballDirectionAngle = startAngle + (angleStep * i);
+            Vector3 fireballDirection = Quaternion.Euler(0, 0, fireballDirectionAngle) * Vector3.up;
+            GameObject smallFireball = Instantiate(fireBallFragment, transform.position, Quaternion.identity);
+            smallFireball.GetComponent<FireBall>().SetDirection(fireballDirection);
+        }
+    }
+
+
+    public void SetDirection(Vector3 newDirection)
+    {
+        direction = newDirection;
+    }
+
+
+    private IEnumerator AnimateLightAndDestroy()
+    {
+        float duration = 0.25f;
+        float time = 0;
+
+        while (time < duration)
+        {
+            float phase = time / duration;
+            light2D.pointLightOuterRadius = Mathf.Lerp(0.2f, 1.0f, phase);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        time = 0;
+        while (time < duration)
+        {
+            float phase = time / duration;
+            light2D.pointLightOuterRadius = Mathf.Lerp(1.0f, 0.0f, phase);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(gameObject);
+    }
+
+
+    private void DestoryGameObject()
+    {
+        Destroy(gameObject);
+    }
+}
