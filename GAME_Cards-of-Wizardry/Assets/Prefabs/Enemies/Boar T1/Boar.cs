@@ -146,6 +146,7 @@ public class Boar : MonoBehaviour
     public void EnemyDied()
     {
         attackCollider.enabled = false;
+        rb.velocity = Vector2.zero;
     }
 
 

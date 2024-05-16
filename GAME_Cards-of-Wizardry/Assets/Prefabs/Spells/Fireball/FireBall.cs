@@ -23,6 +23,7 @@ public class FireBall : MonoBehaviour
     private Vector3 direction;
     private Light2D light2D;
     private BoxCollider2D boxCollider;
+    private SpriteRenderer spriteRenderer;
     private bool hasExploded = false;
     private HashSet<EnemyStats> damagedEnemies = new HashSet<EnemyStats>();
 
@@ -31,6 +32,7 @@ public class FireBall : MonoBehaviour
     {
         audioSource = GetComponent<AudioSource>();
         boxCollider = GetComponent<BoxCollider2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
 
         if (!isFragment)
         {
@@ -162,7 +164,10 @@ public class FireBall : MonoBehaviour
             yield return null;
         }
 
-        Destroy(gameObject);
+        // Give time for audio to finish
+        spriteRenderer.enabled = false;
+        light2D.enabled = false;
+        Destroy(gameObject, 1f);
     }
 
 
