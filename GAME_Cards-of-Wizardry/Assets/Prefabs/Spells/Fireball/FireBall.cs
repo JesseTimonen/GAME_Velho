@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using System.Collections.Generic;
 
 
 public class FireBall : MonoBehaviour
@@ -23,6 +24,7 @@ public class FireBall : MonoBehaviour
     private Light2D light2D;
     private BoxCollider2D boxCollider;
     private bool hasExploded = false;
+    private HashSet<EnemyStats> damagedEnemies = new HashSet<EnemyStats>();
 
 
     void Start()
@@ -68,9 +70,12 @@ public class FireBall : MonoBehaviour
         if (collider.CompareTag("Enemy") && isFragment)
         {
             EnemyStats enemy = collider.GetComponent<EnemyStats>();
+            if (damagedEnemies.Contains(enemy)) return;  // Avoid double damage due double colliders on some enemies
+            damagedEnemies.Add(enemy);
+
             float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
-            float damageDealth = Random.Range(minDamage, maxDamage + 1);
-            enemy.TakeDamage(Mathf.RoundToInt(playerDamageModifier * damageDealth));
+            float damageDealt = Random.Range(minDamage, maxDamage + 1);
+            enemy.TakeDamage(Mathf.RoundToInt(playerDamageModifier * damageDealt));
             enemy.SetOnFire(burnDuration);
             Destroy(gameObject);
         }
@@ -87,20 +92,24 @@ public class FireBall : MonoBehaviour
             if (hitCollider.CompareTag("Enemy"))
             {
                 EnemyStats enemy = hitCollider.GetComponent<EnemyStats>();
+                if (damagedEnemies.Contains(enemy)) continue;  // Avoid double damage due double colliders on some enemies
+                damagedEnemies.Add(enemy);
+
                 float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
-                float damageDealth = Random.Range(minDamage, maxDamage + 1);
-                enemy.TakeDamage(Mathf.RoundToInt(playerDamageModifier * damageDealth));
+                float damageDealt = Random.Range(minDamage, maxDamage + 1);
+                enemy.TakeDamage(Mathf.RoundToInt(playerDamageModifier * damageDealt));
 
                 if (burnDuration > 0)
                 {
                     enemy.SetOnFire(burnDuration);
                 }
-
-                if (spawnFragments)
-                {
-                    SpawnFireFragments();
-                }
             }
+        }
+
+
+        if (spawnFragments)
+        {
+            SpawnFireFragments();
         }
 
         hasExploded = true;

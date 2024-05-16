@@ -29,22 +29,20 @@ public class EnemyStats : MonoBehaviour
     private float damageReductionStrength = 0f;
     private float reflectIntensity = 0f;
 
-    private float difficultyModifier = 1f;
-
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-
-        maxHealth = Mathf.RoundToInt(maxHealth * GameManager.Instance.GetSurvivalModifier());
-        health = maxHealth;
     }
 
 
     private void Start()
     {
         levelUpManager = GameManager.Instance.GetLevelUpManager();
+
+        maxHealth = Mathf.RoundToInt(maxHealth * GameManager.Instance.GetSurvivalModifier());
+        health = maxHealth;
     }
 
 

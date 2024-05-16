@@ -77,20 +77,6 @@ public class WaveSpawner : MonoBehaviour
             }
         }
 
-        // Start next wave if time ends or all enemies have been killed
-        if (waveTimer >= wave.waveDuration || (enemyParent.childCount == 0 && waveTimer >= wave.spawnDuration))
-        {
-            if (enemyParent.childCount == 0 && waveTimer >= wave.spawnDuration)
-            {
-                waveTimer = Mathf.Min(waveTimer, wave.waveDuration - 10f);
-            }
-
-            StartNextWave();
-        }
-
-
-
-
         // Custom spawns
         foreach (var customSpawn in wave.customSpawns)
         {
@@ -101,6 +87,7 @@ public class WaveSpawner : MonoBehaviour
                     if (customSpawn.activateAutomatically)
                     {
                         customSpawn.gameObject.SetActive(true);
+                        customSpawn.gameObject.transform.parent = enemyParent;
                     }
 
                     customSpawn.hasBeenActivated = true;
