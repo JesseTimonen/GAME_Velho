@@ -32,11 +32,11 @@ public class Heal : MonoBehaviour
             // playerController.AddHealth(maximumHealthIncreas);
         }
 
-        Invoke("DestoryGameObject", 2f);
+        Invoke("DestroyGameObject", 2f);
     }
 
 
-    private void DestoryGameObject()
+    private void DestroyGameObject()
     {
         Destroy(gameObject);
     }

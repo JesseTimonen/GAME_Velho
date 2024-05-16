@@ -22,11 +22,11 @@ public class Shield : MonoBehaviour
 
         playerController.AddShield(shieldAmount);
 
-        Invoke("DestoryGameObject", 2f);
+        Invoke("DestroyGameObject", 2f);
     }
 
 
-    private void DestoryGameObject()
+    private void DestroyGameObject()
     {
         Destroy(gameObject);
     }

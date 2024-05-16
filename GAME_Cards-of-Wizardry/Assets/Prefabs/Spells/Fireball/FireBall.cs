@@ -38,7 +38,7 @@ public class FireBall : MonoBehaviour
             direction = (targetPosition - transform.position).normalized;
         }
 
-        Invoke("DestoryGameObject", maxLifetime);
+        Invoke("DestroyGameObject", maxLifetime);
     }
 
 
@@ -157,7 +157,7 @@ public class FireBall : MonoBehaviour
     }
 
 
-    private void DestoryGameObject()
+    private void DestroyGameObject()
     {
         Destroy(gameObject);
     }
