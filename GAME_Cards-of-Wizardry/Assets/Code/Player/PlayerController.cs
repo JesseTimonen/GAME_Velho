@@ -36,7 +36,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI ShieldValueText;
     [SerializeField] private GameObject ShieldDamageUIElement;
     [SerializeField] private TextMeshProUGUI ShieldDamageValueText;
-    [SerializeField] private float shieldMaxDamageAt = 2000f;
+    [SerializeField] private float shieldMaxDamageAt = 1000f;
     [SerializeField] private ShieldTimer shieldTimer;
     [SerializeField] private ShieldDamageTimer shieldDamageTimer;
 
@@ -398,17 +398,12 @@ public class PlayerController : MonoBehaviour
     {
         healIcon.SetActive(true);
 
-        if (healCoroutine != null)
+        healEndTime = Time.time + duration;
+        healIconTimer.text = $"{Mathf.CeilToInt(healEndTime - Time.time)}s";
+
+        if (healCoroutine == null)
         {
-            healEndTime += duration;
-            healIconTimer.text = $"{Mathf.CeilToInt(healEndTime - Time.time)}s";
-        }
-        else
-        {
-            // Start a new healing coroutine
-            healEndTime = Time.time + duration;
             healCoroutine = StartCoroutine(ApplyHealOverTime());
-            healIconTimer.text = $"{Mathf.CeilToInt(healEndTime - Time.time)}s";
         }
     }
 
@@ -452,20 +447,13 @@ public class PlayerController : MonoBehaviour
         tempMaxHealth += additionalMaxHealth;
         maxHealth += additionalMaxHealth;
 
-        if (tempMaxHealthCoroutine != null)
+        tempMaxHealthEndTime = Time.time + duration;
+        tempHealthIconDuration.text = $"{Mathf.CeilToInt(tempMaxHealthEndTime - Time.time)}s";
+        tempHealthIconAmount.text = tempMaxHealth.ToString();
+
+        if (tempMaxHealthCoroutine == null)
         {
-            // Extend old coroutine
-            tempMaxHealthEndTime += duration;
-            tempHealthIconDuration.text = $"{Mathf.CeilToInt(tempMaxHealthEndTime - Time.time)}s";
-            tempHealthIconAmount.text = tempMaxHealth.ToString();
-        }
-        else
-        {
-            // Start a new coroutine
-            tempMaxHealthEndTime = Time.time + duration;
             tempMaxHealthCoroutine = StartCoroutine(DisplayMaxHealthBuff());
-            tempHealthIconDuration.text = $"{Mathf.CeilToInt(tempMaxHealthEndTime - Time.time)}s";
-            tempHealthIconAmount.text = tempMaxHealth.ToString();
         }
     }
 
