@@ -114,7 +114,7 @@ public class GameManager : MonoBehaviour
         {
             survivalCurseDebuffIcon.SetActive(true);
 
-            int buffAmount = Mathf.RoundToInt(survivalWave * 20f);
+            int buffAmount = Mathf.RoundToInt(survivalWave * 50f);
             survivalCurseText.text = "After the fall of the grand wizard you sense that the darkness grows quickly.\r\n\r\nEndless Curse Tier " + survivalWave + "\r\nEnemies have " + buffAmount + "% more health\r\nEnemies Deal " + buffAmount + "% more damage";
         }
     }
