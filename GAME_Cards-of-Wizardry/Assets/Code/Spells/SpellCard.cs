@@ -13,7 +13,8 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     [SerializeField] private PlayerController playerController;
     [SerializeField] private Animator playerAnimator;
     [SerializeField] private GameObject spellActionPromptText;
-    [SerializeField] private Animator outOfManaAnimator;
+    [SerializeField] private Animator unableToPlayCardAnimator;
+    [SerializeField] private TextMeshProUGUI unableToPlayCardText;
     [SerializeField] private GameObject discardPile;
     [SerializeField] private TextMeshProUGUI cooldownText;
     [SerializeField] private float discardDelayDuration = 5f;
@@ -232,7 +233,21 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
         SpellBook.Spell spell = spellBook.spells[currentSpellIndex];
 
-        if (playerController.HasMana(spell.manaCost))
+        if (playerController.IsFrozen())
+        {
+            unableToPlayCardText.text = "Frozen";
+            unableToPlayCardAnimator.SetTrigger("Show");
+            audioSource.clip = noManaAudio;
+            audioSource.Play();
+        }
+        else if (!playerController.HasMana(spell.manaCost))
+        {
+            unableToPlayCardText.text = "Out of mana";
+            unableToPlayCardAnimator.SetTrigger("Show");
+            audioSource.clip = noManaAudio;
+            audioSource.Play();
+        }
+        else
         {
             playerController.UseMana(spell.manaCost);
 
@@ -257,12 +272,6 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             castingAreaIndicatorInstance = null;
             spellMastery.IncreaseSpellUsage(spell.name);
             StartRechargeSpell();
-        }
-        else
-        {
-            outOfManaAnimator.SetTrigger("Show");
-            audioSource.clip = noManaAudio;
-            audioSource.Play();
         }
     }
 

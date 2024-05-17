@@ -624,6 +624,12 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    public bool IsFrozen()
+    {
+        return isFrozen;
+    }
+
+
     public int GetStrength()
     {
         return strength;
