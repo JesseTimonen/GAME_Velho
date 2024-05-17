@@ -3,10 +3,34 @@ using UnityEngine.SceneManagement;
 
 public class OptionsMenu : MonoBehaviour
 {
+    [SerializeField] private InputController inputController;
     [SerializeField] private GameObject optionsPanel;
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
     [SerializeField] private AudioSource audioSource;
+
+    private void Update()
+    {
+        if (inputController.OptionsPanelPressed)
+        {
+            if (optionsPanel.activeSelf)
+            {
+                CloseOptionsPanelUI();
+            }
+            else if (GameManager.Instance.UIPanelOpened == false)
+            {
+                OpenOptionsPanelUI();
+            }
+        }
+
+        if (inputController.EscapePressed)
+        {
+            if (optionsPanel.activeSelf)
+            {
+                CloseOptionsPanelUI();
+            }
+        }
+    }
 
     public void OpenOptionsPanelUI()
     {

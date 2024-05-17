@@ -108,7 +108,7 @@ public class GameManager : MonoBehaviour
 
     public void SetSurvivalModifier(int survivalWave = 0)
     {
-        survivalModifier = 1f + 0.2f * survivalWave;
+        survivalModifier = 1f + (0.5f * survivalWave);
 
         if (survivalModifier > 1f)
         {

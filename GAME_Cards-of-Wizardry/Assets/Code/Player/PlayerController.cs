@@ -36,6 +36,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI ShieldValueText;
     [SerializeField] private GameObject ShieldDamageUIElement;
     [SerializeField] private TextMeshProUGUI ShieldDamageValueText;
+    [SerializeField] private float shieldMaxDamageAt = 2000f;
     [SerializeField] private ShieldTimer shieldTimer;
     [SerializeField] private ShieldDamageTimer shieldDamageTimer;
 
@@ -338,8 +339,8 @@ public class PlayerController : MonoBehaviour
         if (shieldDamageBuffEnabled)
         {
             ShieldDamageUIElement.SetActive(shieldAmount > 0);
-            float damage = shieldAmount * 0.1f;
-            ShieldDamageValueText.text = Mathf.Ceil(damage).ToString() + "%";
+            float shieldDamage = Mathf.Min(shieldAmount, shieldMaxDamageAt) * 0.1f;
+            ShieldDamageValueText.text = Mathf.Round(shieldDamage).ToString() + "%";
         }
     }
 
@@ -677,8 +678,8 @@ public class PlayerController : MonoBehaviour
         // Each point of intelligence increases damage by 5%, adjustements might be needed when game balance becomes more clear
         modifier += intelligence * 0.05f;
 
-        // Each point of shieldAmount increases damage by 0.1%, adjustements might be needed when game balance becomes more clear
-        modifier = modifier * (1 + (shieldAmount * 0.001f));
+        // Each point of shieldAmount increases damage by 1%, adjustements might be needed when game balance becomes more clear
+        modifier = modifier * (1 + (Mathf.Min(shieldAmount, shieldMaxDamageAt) * 0.001f));
 
         return modifier;
     }
