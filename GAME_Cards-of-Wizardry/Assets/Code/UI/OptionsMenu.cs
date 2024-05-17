@@ -25,7 +25,11 @@ public class OptionsMenu : MonoBehaviour
 
         if (inputController.EscapePressed)
         {
-            if (optionsPanel.activeSelf)
+            if (GameManager.Instance.UIPanelOpened == false)
+            {
+                OpenOptionsPanelUI();
+            }
+            else if (optionsPanel.activeSelf)
             {
                 CloseOptionsPanelUI();
             }
@@ -47,13 +51,19 @@ public class OptionsMenu : MonoBehaviour
     public void CloseOptionsPanelUI()
     {
         GameManager.Instance.ShowBasicUI();
-        GameManager.Instance.UIPanelOpened = false;
         Time.timeScale = 1;
         optionsPanel.SetActive(false);
 
 
         audioSource.clip = panelCloseAudio;
         audioSource.Play();
+
+        Invoke("CloseUIPanelReference", 0.1f);
+    }
+
+    private void CloseUIPanelReference()
+    {
+        GameManager.Instance.UIPanelOpened = false;
     }
 
     public void RestartGame()

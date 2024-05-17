@@ -108,12 +108,18 @@ public class SpellDictionary : MonoBehaviour
     public void CloseSpellBookPanelUI()
     {
         GameManager.Instance.ShowBasicUI();
-        GameManager.Instance.UIPanelOpened = false;
         Time.timeScale = 1;
         spellBookPanel.SetActive(false);
         DeleteSpellBookEntries();
 
         audioSource.clip = panelCloseAudio;
         audioSource.Play();
+
+        Invoke("CloseUIPanelReference", 0.1f);
+    }
+
+    private void CloseUIPanelReference()
+    {
+        GameManager.Instance.UIPanelOpened = false;
     }
 }

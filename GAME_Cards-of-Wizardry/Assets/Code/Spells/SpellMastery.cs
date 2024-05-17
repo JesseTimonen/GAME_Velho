@@ -196,12 +196,18 @@ public class SpellMastery : MonoBehaviour
     public void CloseMasteryPanelUI()
     {
         GameManager.Instance.ShowBasicUI();
-        GameManager.Instance.UIPanelOpened = false;
         Time.timeScale = 1;
         DeleteSpellEntries();
         spellMasteryPanel.SetActive(false);
 
         audioSource.clip = panelCloseAudio;
         audioSource.Play();
+
+        Invoke("CloseUIPanelReference", 0.1f);
+    }
+
+    private void CloseUIPanelReference()
+    {
+        GameManager.Instance.UIPanelOpened = false;
     }
 }
