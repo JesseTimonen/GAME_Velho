@@ -68,7 +68,7 @@ public class WaveSpawner : MonoBehaviour
             // Fast forward to 10s left until next wave if all enemies have been killed
             if (enemyParent.childCount == 0 && waveTimer >= wave.spawnDuration && waveTimer < wave.waveDuration - 5f)
             {
-                waveTimer = wave.waveDuration - 10f;
+                waveTimer = wave.waveDuration - 5f;
             }
 
             if (waveTimer >= wave.waveDuration)
