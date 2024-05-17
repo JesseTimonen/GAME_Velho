@@ -28,6 +28,9 @@ public abstract class BossStageTwo : MonoBehaviour
     protected enum BossState { Moving, UsingSkills }
     protected BossState bossState;
 
+    private bool furthestRadiusExtended = false;
+    private float originalFurthestRadius;
+
     protected virtual void Awake()
     {
         stats = GetComponent<EnemyStats>();
@@ -40,6 +43,7 @@ public abstract class BossStageTwo : MonoBehaviour
     {
         player = GameManager.Instance.GetPlayerTransform();
         teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
+        originalFurthestRadius = furthestRadius;
         bossState = BossState.Moving;
         animator.SetBool("isMoving", true);
 
@@ -60,6 +64,7 @@ public abstract class BossStageTwo : MonoBehaviour
             MoveToIdealRadius(distanceToPlayer);
             if (distanceToPlayer >= closestRadius && distanceToPlayer <= furthestRadius)
             {
+                ExtendFurthestRadius();
                 bossState = BossState.UsingSkills;
                 animator.SetBool("isMoving", false);
             }
@@ -68,6 +73,7 @@ public abstract class BossStageTwo : MonoBehaviour
         {
             if (distanceToPlayer < closestRadius || distanceToPlayer > furthestRadius)
             {
+                ResetFurthestRadius();
                 bossState = BossState.Moving;
                 animator.SetBool("isMoving", true);
             }
@@ -181,5 +187,23 @@ public abstract class BossStageTwo : MonoBehaviour
     public void DestroyGameobject()
     {
         Destroy(gameObject);
+    }
+
+    private void ExtendFurthestRadius()
+    {
+        if (!furthestRadiusExtended)
+        {
+            furthestRadius *= 1.75f;
+            furthestRadiusExtended = true;
+        }
+    }
+
+    private void ResetFurthestRadius()
+    {
+        if (furthestRadiusExtended)
+        {
+            furthestRadius = originalFurthestRadius;
+            furthestRadiusExtended = false;
+        }
     }
 }

@@ -15,17 +15,19 @@ public class FireStorm : MonoBehaviour
     [Header("Shake")]
     [SerializeField] private ShakeData explosionShake;
 
-    private Renderer ShaderRenderer;
-    private Light2D light2D;
-    private float startTime;
+    [Header("Light Animation")]
+    [SerializeField] private float initialLightIntensity = 5;
+    [SerializeField] private float midLightIntensity = 25;
+    private float finalLightIntensity = 0.0f;
     private float initialFade = 1.0f;
     private float midFade = 0.75f;
     private float finalFade = 0.0f;
     private float initialBorderThickness = 0.2f;
     private float finalBorderThickness = 1.0f;
-    private float initialLightIntensity = 5;
-    private float midLightIntensity = 25;
-    private float finalLightIntensity = 0.0f;
+
+    private Renderer ShaderRenderer;
+    private Light2D light2D;
+    private float startTime;
 
 
     private void Start()

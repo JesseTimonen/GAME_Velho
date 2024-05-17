@@ -15,6 +15,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject UIStats;
     [SerializeField] private GameObject UIIcons;
     [SerializeField] private GameObject UICards;
+    [SerializeField] private GameObject wis10CardUnlock;
+    [SerializeField] private GameObject wis20CardUnlock;
     [SerializeField] private GameObject WindAudioObject;
     [SerializeField] private GameObject waveManager;
     [SerializeField] private GameObject survivalCurseDebuffIcon;
@@ -33,7 +35,6 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -92,6 +93,16 @@ public class GameManager : MonoBehaviour
         UIStats.SetActive(true);
         UIIcons.SetActive(true);
         UICards.SetActive(true);
+
+        if (playerController.GetWisdom() >= 10)
+        {
+            wis10CardUnlock.SetActive(true);
+        }
+
+        if (playerController.GetWisdom() >= 20)
+        {
+            wis20CardUnlock.SetActive(true);
+        }
     }
 
 

@@ -81,6 +81,8 @@ public class BossStageOne : MonoBehaviour
     private enum BossState { Moving, UsingSkills }
     private BossState bossState;
 
+    private bool furthestRadiusExtended = false;
+    private float originalFurthestRadius;
 
     private void Awake()
     {
@@ -90,7 +92,6 @@ public class BossStageOne : MonoBehaviour
         boxCollider = GetComponent<BoxCollider2D>();
         dissolveMaterial = GetComponent<Renderer>().material;
     }
-
 
     private void Start()
     {
@@ -104,13 +105,14 @@ public class BossStageOne : MonoBehaviour
         healTimer = healCooldown;
         teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
 
+        originalFurthestRadius = furthestRadius;
+
         bossState = BossState.Moving;
         animator.SetBool("isMoving", true);
 
         // Used to auto enable health bar on spawn
         stats.AddHealth(1);
     }
-
 
     private void Update()
     {
@@ -127,6 +129,7 @@ public class BossStageOne : MonoBehaviour
 
             if (distanceToPlayer >= closestRadius && distanceToPlayer <= furthestRadius)
             {
+                ExtendFurthestRadius();
                 bossState = BossState.UsingSkills;
                 animator.SetBool("isMoving", false);
             }
@@ -135,6 +138,7 @@ public class BossStageOne : MonoBehaviour
         {
             if (distanceToPlayer < closestRadius || distanceToPlayer > furthestRadius)
             {
+                ResetFurthestRadius();
                 bossState = BossState.Moving;
                 animator.SetBool("isMoving", true);
             }
@@ -147,7 +151,6 @@ public class BossStageOne : MonoBehaviour
         FlipGameObject();
     }
 
-
     private void CheckEnrageMode()
     {
         if (!isEnraged && stats.health <= stats.maxHealth * enrageThreshold)
@@ -158,7 +161,6 @@ public class BossStageOne : MonoBehaviour
             renderer.material = outlineMaterial;
         }
     }
-
 
     private void MoveToIdealRadius(float distanceToPlayer)
     {
@@ -175,7 +177,6 @@ public class BossStageOne : MonoBehaviour
 
         rb.velocity = direction * moveSpeed;
     }
-
 
     private void HandleAbilities()
     {
@@ -230,7 +231,6 @@ public class BossStageOne : MonoBehaviour
         }
     }
 
-
     private void HandleTeleportation()
     {
         teleportTimer -= Time.deltaTime;
@@ -240,14 +240,12 @@ public class BossStageOne : MonoBehaviour
         }
     }
 
-
     private void LaunchFireball()
     {
         animator.SetTrigger("Attack");
         GameObject fireball = Instantiate(fireballPrefab, transform.position, Quaternion.identity);
         fireball.GetComponent<EnemyFireball>().SetDirection((player.position - transform.position).normalized);
     }
-
 
     private IEnumerator FireballBurst()
     {
@@ -257,7 +255,6 @@ public class BossStageOne : MonoBehaviour
             yield return new WaitForSeconds(fireballBurstDelay);
         }
     }
-
 
     private void LaunchShotgunBurst()
     {
@@ -278,7 +275,6 @@ public class BossStageOne : MonoBehaviour
         }
     }
 
-
     private IEnumerator LaunchMeteorShower()
     {
         float elapsed = 0f;
@@ -292,7 +288,6 @@ public class BossStageOne : MonoBehaviour
         }
     }
 
-
     private void SpawnMeteor()
     {
         animator.SetTrigger("Attack");
@@ -301,25 +296,21 @@ public class BossStageOne : MonoBehaviour
         Instantiate(meteorPrefab, spawnPosition, Quaternion.identity);
     }
 
-
     private void ActivateReflectShield()
     {
         stats.AddReflect(reflectIntensity, reflectDuration);
     }
-
 
     private void ActivateDamageReductionShield()
     {
         stats.AddDamageReduction(damageReductionStrength, damageReductionDuration);
     }
 
-
     private void HealBoss()
     {
         stats.AddHealth(healingAmount);
         healingBurstParticles.Play();
     }
-
 
     private IEnumerator Teleport()
     {
@@ -332,7 +323,6 @@ public class BossStageOne : MonoBehaviour
         boxCollider.enabled = true;
         isTeleporting = false;
     }
-
 
     private IEnumerator DissolveEffect(bool isAppearing)
     {
@@ -398,14 +388,12 @@ public class BossStageOne : MonoBehaviour
         }
     }
 
-
     private void FlipGameObject()
     {
         Vector2 direction = (player.position - transform.position).normalized;
         bool facingLeft = direction.x < 0;
         transform.rotation = Quaternion.Euler(0, facingLeft ? 0 : 180, 0);
     }
-
 
     private void OnDrawGizmosSelected()
     {
@@ -414,7 +402,6 @@ public class BossStageOne : MonoBehaviour
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, furthestRadius);
     }
-
 
     public void DestroyGameobject()
     {
@@ -435,15 +422,31 @@ public class BossStageOne : MonoBehaviour
         boss_O.SetActive(true);
         boss_O.transform.position = GetRandomPositionInBox(transform.position, spawnRadius, spawnRadius);
 
-
         Destroy(gameObject);
     }
-
 
     private Vector2 GetRandomPositionInBox(Vector2 center, float width, float height)
     {
         float randomX = Random.Range(center.x - width / 2, center.x + width / 2);
         float randomY = Random.Range(center.y - height / 2, center.y + height / 2);
         return new Vector2(randomX, randomY);
+    }
+
+    private void ExtendFurthestRadius()
+    {
+        if (!furthestRadiusExtended)
+        {
+            furthestRadius *= 1.75f;
+            furthestRadiusExtended = true;
+        }
+    }
+
+    private void ResetFurthestRadius()
+    {
+        if (furthestRadiusExtended)
+        {
+            furthestRadius = originalFurthestRadius;
+            furthestRadiusExtended = false;
+        }
     }
 }

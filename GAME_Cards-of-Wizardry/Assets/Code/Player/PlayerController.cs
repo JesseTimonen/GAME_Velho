@@ -137,8 +137,8 @@ public class PlayerController : MonoBehaviour
 
     private void RechargeMana()
     {
-        // Wisdom increases mana recharge by 10% per rank, adjustements might be needed when game balance becomes more clear
-        currentMana = Mathf.Min(maxMana, currentMana + manaRechargeRate * (1 + 0.1f * (wisdom - 1)) * Time.deltaTime);
+        // Wisdom increases mana recharge by 5% per rank, adjustements might be needed when game balance becomes more clear
+        currentMana = Mathf.Min(maxMana, currentMana + manaRechargeRate * (1 + 0.05f * (wisdom - 1)) * Time.deltaTime);
     }
 
 
@@ -674,11 +674,11 @@ public class PlayerController : MonoBehaviour
     {
         float modifier = 1f;
 
-        // Each point of intelligence increases damage by 10%, adjustements might be needed when game balance becomes more clear
-        modifier += intelligence * 0.1f;
+        // Each point of intelligence increases damage by 5%, adjustements might be needed when game balance becomes more clear
+        modifier += intelligence * 0.05f;
 
-        // Each point of shieldAmount increases damage by 1%, adjustements might be needed when game balance becomes more clear
-        modifier += shieldAmount * 0.01f;
+        // Each point of shieldAmount increases damage by 0.1%, adjustements might be needed when game balance becomes more clear
+        modifier = modifier * (1 + (shieldAmount * 0.001f));
 
         return modifier;
     }

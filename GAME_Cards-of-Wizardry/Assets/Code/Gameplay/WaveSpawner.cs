@@ -29,7 +29,7 @@ public class CustomSpawn
 {
     public GameObject gameObject;
     public float activationTime;
-    public bool activateAutomatically = true;
+    public bool keepUnactive;
     [HideInInspector] public bool hasBeenActivated;
 }
 
@@ -84,12 +84,12 @@ public class WaveSpawner : MonoBehaviour
             {
                 if (waveTimer >= customSpawn.activationTime)
                 {
-                    if (customSpawn.activateAutomatically)
+                    if (!customSpawn.keepUnactive)
                     {
                         customSpawn.gameObject.SetActive(true);
-                        customSpawn.gameObject.transform.parent = enemyParent;
                     }
 
+                    customSpawn.gameObject.transform.parent = enemyParent;
                     customSpawn.hasBeenActivated = true;
                 }
             }
