@@ -84,6 +84,7 @@ public class PlayerController : MonoBehaviour
     private Coroutine freezeCoroutine;
     private float freezeEndTime;
     private bool isFrozen = false;
+    private bool isLookingRight = true;
 
 
     private void Start()
@@ -145,7 +146,6 @@ public class PlayerController : MonoBehaviour
 
     private void Move()
     {
-        // Strength increases movement speed by 2% per rank, adjustements might be needed when game balance becomes more clear
         if (inputController.Move.x != 0 || inputController.Move.y != 0)
         {
             playerAnimator.SetBool("IsMoving", true);
@@ -155,6 +155,7 @@ public class PlayerController : MonoBehaviour
             playerAnimator.SetBool("IsMoving", false);
         }
 
+        // Strength increases movement speed by 2% per rank, adjustements might be needed when game balance becomes more clear
         rb.velocity = new Vector2(inputController.Move.x, inputController.Move.y) * moveSpeed * (1 + 0.02f * (strength - 1));
     }
 
@@ -181,13 +182,15 @@ public class PlayerController : MonoBehaviour
 
         if (Mathf.Abs(distance) > 0.5f)
         {
-            if (distance > 0)
+            if (distance > 0 && !isLookingRight)
             {
                 transform.rotation = Quaternion.Euler(0, 0, 0);
+                isLookingRight = true;
             }
-            else
+            else if (distance < 0 && isLookingRight)
             {
                 transform.rotation = Quaternion.Euler(0, 180, 0);
+                isLookingRight = false;
             }
         }
     }
@@ -279,8 +282,8 @@ public class PlayerController : MonoBehaviour
 
     private void ApplyDamage(int amount)
     {
-        // Strength decresed damage gradually down to -50%, adjustements might be needed when game balance becomes more clear
-        float damageReductionFactor = strength / (strength + 24.44f);
+        // Strength decresed damage gradually down to -75%, adjustements might be needed when game balance becomes more clear
+        float damageReductionFactor = strength / (strength + 10);
         int damageTaken = Mathf.RoundToInt(amount * (1 - damageReductionFactor));
 
         currentHealth -= damageTaken;

@@ -47,10 +47,14 @@ public class Boss_H : BossStageTwo
     private void HealLowestHealthEnemy()
     {
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, healBurstRadius, LayerMask.GetMask("Enemy"));
-        var enemies = hitColliders.Where(c => c.GetComponent<EnemyStats>() != null).ToList();
+        Collider2D selfCollider = GetComponent<Collider2D>();
+
+        var enemies = hitColliders.Where(c => c.GetComponent<EnemyStats>() != null && c != selfCollider).ToList();
+
         if (enemies.Count > 0)
         {
             var lowestHealthEnemy = enemies.OrderBy(e => e.GetComponent<EnemyStats>().health / e.GetComponent<EnemyStats>().maxHealth).First();
+
             if (lowestHealthEnemy != null)
             {
                 Vector2 direction = (lowestHealthEnemy.transform.position - transform.position).normalized;

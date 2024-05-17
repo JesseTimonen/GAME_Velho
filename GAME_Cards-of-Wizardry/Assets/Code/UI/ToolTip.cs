@@ -9,6 +9,11 @@ public class ToolTip : MonoBehaviour
     [SerializeField] private TextMeshProUGUI tooltipText;
     [HideInInspector] public string tooltipContent;
 
+    private void OnDisable()
+    {
+        tooltipPanel.SetActive(false);
+    }
+
     public void ShowToolTip()
     {
         tooltipPanel.SetActive(true);

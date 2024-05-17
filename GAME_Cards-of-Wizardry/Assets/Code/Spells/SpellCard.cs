@@ -40,9 +40,13 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     private PointerEventData currentEventData;
     private float cooldownTimeRemaining = 0f;
 
+    private Animator animator;
+    private RuntimeAnimatorController originalController;
+
     private void Awake()
     {
         cardImage = GetComponent<RawImage>();
+        animator = GetComponent<Animator>();
         startPosition = transform.position;
         originalParent = transform.parent;
         PickRandomSpell();
@@ -94,6 +98,9 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     {
         if (isRecharging) return;
 
+        originalController = animator.runtimeAnimatorController;
+        animator.runtimeAnimatorController = null;
+
         isDragging = true;
         transform.SetParent(transform.root);
         cardImage.raycastTarget = false;
@@ -131,6 +138,8 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     public void OnEndDrag(PointerEventData eventData)
     {
         if (isRecharging) return;
+
+        animator.runtimeAnimatorController = originalController;
 
         isDragging = false;
         transform.position = startPosition;

@@ -50,15 +50,22 @@ public class GameManager : MonoBehaviour
         TitleScreenAnimator.SetTrigger("StartGame");
         waveManager.SetActive(true);
         spellBook.Initialize();
-        ShowBasicUI();
         gameHasStarted = true;
         WindAudioObject.SetActive(true);
+        Invoke("ShowBasicUI", 2f);
+    }
+
+
+    public void ExitApplication()
+    {
+        Application.Quit();
     }
 
 
     private void Settings()
     {
         Application.targetFrameRate = 60;
+        Screen.SetResolution(1920, 1080, true);
     }
 
 
