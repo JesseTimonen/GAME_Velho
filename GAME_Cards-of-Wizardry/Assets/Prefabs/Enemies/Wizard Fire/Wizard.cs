@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -181,6 +180,8 @@ public class Wizard : MonoBehaviour
             dissolveMaterial.SetFloat("_Fade", dissolveValue);
             yield return null;
         }
+
+        dissolveMaterial.SetFloat("_Fade", endValue);
     }
 
 

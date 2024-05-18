@@ -55,7 +55,7 @@ public class FireStorm : MonoBehaviour
         float damageModifier = 1 + Time.time - startTime;
         PlayerController playerController = GameManager.Instance.GetPlayerController();
         float playerDamageModifier = playerController.GetDamageBoost();
-        float baseDamage = Random.Range(minDamage, maxDamage + 1);
+        float baseDamage = Random.Range(minDamage, maxDamage);
         float adjustedDamage = baseDamage / damageModifier;
         int finalDamage = Mathf.RoundToInt(playerDamageModifier * adjustedDamage);
         float adjustedBurnDuration = burnDuration / damageModifier;

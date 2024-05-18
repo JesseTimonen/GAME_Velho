@@ -76,7 +76,7 @@ public class FireBall : MonoBehaviour
             damagedEnemies.Add(enemy);
 
             float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
-            float damageDealt = Random.Range(minDamage, maxDamage + 1);
+            float damageDealt = Random.Range(minDamage, maxDamage);
             enemy.TakeDamage(Mathf.RoundToInt(playerDamageModifier * damageDealt));
             enemy.SetOnFire(burnDuration);
             Destroy(gameObject);
@@ -98,8 +98,8 @@ public class FireBall : MonoBehaviour
                 damagedEnemies.Add(enemy);
 
                 float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
-                float damageDealt = Random.Range(minDamage, maxDamage + 1);
-                enemy.TakeDamage(Mathf.RoundToInt(playerDamageModifier * damageDealt));
+                float damageDealt = Random.Range(minDamage, maxDamage);
+                enemy.TakeDamage(Mathf.RoundToInt(damageDealt * playerDamageModifier));
 
                 if (burnDuration > 0)
                 {

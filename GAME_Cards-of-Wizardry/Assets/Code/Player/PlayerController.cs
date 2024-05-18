@@ -36,7 +36,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI ShieldValueText;
     [SerializeField] private GameObject ShieldDamageUIElement;
     [SerializeField] private TextMeshProUGUI ShieldDamageValueText;
-    [SerializeField] private float shieldMaxDamageAt = 1000f;
+    [SerializeField] private float shieldMaxDamageAt;
     [SerializeField] private ShieldTimer shieldTimer;
     [SerializeField] private ShieldDamageTimer shieldDamageTimer;
 
@@ -282,8 +282,7 @@ public class PlayerController : MonoBehaviour
 
     private void ApplyDamage(int amount)
     {
-        // Strength decresed damage gradually down to -75%, adjustements might be needed when game balance becomes more clear
-        float damageReductionFactor = strength / (strength + 10);
+        float damageReductionFactor = (float)strength / (strength + 10);
         int damageTaken = Mathf.RoundToInt(amount * (1 - damageReductionFactor));
 
         currentHealth -= damageTaken;
@@ -668,16 +667,25 @@ public class PlayerController : MonoBehaviour
         wisdom = value;
     }
 
+    public float GetIntelligenceDamageBoost()
+    {
+        // Each point of intelligence increases damage by 5%
+        return 1f + (intelligence * 0.05f);
+    }
+
+    public float GetShieldDamageBoost()
+    {
+        // Each point of shieldAmount increases damage by 1%
+        return 1f + (Mathf.Min(shieldAmount, shieldMaxDamageAt) * 0.001f);
+    }
+
     public float GetDamageBoost()
     {
-        float modifier = 1f;
+        float intBoost = GetIntelligenceDamageBoost();
+        float shieldBoost = GetShieldDamageBoost();
 
-        // Each point of intelligence increases damage by 5%, adjustements might be needed when game balance becomes more clear
-        modifier += intelligence * 0.05f;
-
-        // Each point of shieldAmount increases damage by 1%, adjustements might be needed when game balance becomes more clear
-        modifier = modifier * (1 + (Mathf.Min(shieldAmount, shieldMaxDamageAt) * 0.001f));
-
-        return modifier;
+        return (intBoost - 1) + (shieldBoost - 1) + 1;
     }
+
+
 }
