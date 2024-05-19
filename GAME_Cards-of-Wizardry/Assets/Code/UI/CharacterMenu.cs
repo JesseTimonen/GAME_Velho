@@ -1,9 +1,9 @@
 using UnityEngine;
 
-public class OptionsMenu : MonoBehaviour
+public class CharacterMenu : MonoBehaviour
 {
     [SerializeField] private InputController inputController;
-    [SerializeField] private GameObject optionsPanel;
+    [SerializeField] private GameObject characterPanel;
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
     [SerializeField] private AudioSource audioSource;
@@ -11,21 +11,21 @@ public class OptionsMenu : MonoBehaviour
 
     private void Update()
     {
-        if (inputController.OptionsPanelPressed && GameManager.Instance.UIPanelOpened == false)
+        if (inputController.CharacterPanelPressed && GameManager.Instance.UIPanelOpened == false)
         {
-            OpenOptionsPanel();
+            OpenCharacterPanel();
         }
-        else if ((inputController.OptionsPanelPressed || inputController.EscapePressed) && isOpen)
+        else if ((inputController.CharacterPanelPressed || inputController.EscapePressed) && isOpen)
         {
-            CloseOptionsPanel();
+            CloseCharacterPanel();
         }
     }
 
-    public void OpenOptionsPanel()
+    public void OpenCharacterPanel()
     {
         GameManager.Instance.HideBasicUI();
         GameManager.Instance.UIPanelOpened = true;
-        optionsPanel.SetActive(true);
+        characterPanel.SetActive(true);
 
         audioSource.clip = panelOpenAudio;
         audioSource.Play();
@@ -35,11 +35,11 @@ public class OptionsMenu : MonoBehaviour
         isOpen = true;
     }
 
-    public void CloseOptionsPanel()
+    public void CloseCharacterPanel()
     {
         GameManager.Instance.ShowBasicUI();
         Time.timeScale = 1;
-        optionsPanel.SetActive(false);
+        characterPanel.SetActive(false);
 
 
         audioSource.clip = panelCloseAudio;

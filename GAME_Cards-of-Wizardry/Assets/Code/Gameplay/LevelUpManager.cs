@@ -34,11 +34,17 @@ public class LevelUpManager : MonoBehaviour
     [SerializeField] private Button increaseWisdomButton;
     [SerializeField] private Button increaseHealthButton;
     [SerializeField] private Button increaseManaButton;
-    [SerializeField] private Button confirmButton;
+
+    [Header("Views")]
+    [SerializeField] private GameObject cancelButton;
+    [SerializeField] private GameObject confirmButton;
+    [SerializeField] private GameObject skipButton;
+    [SerializeField] private GameObject skipRewardView;
+    [SerializeField] private GameObject rewardSelectionView;
+    [SerializeField] private CharacterMenu characterMenu;
 
     [Header("Leveling Configuration")]
     [SerializeField] private List<int> expThresholds = new List<int>();
-
 
     private int currentExperience = 0;
     private int bufferedExperience = 0;
@@ -46,6 +52,8 @@ public class LevelUpManager : MonoBehaviour
     private bool levelUpInProgress = false;
     private int availableStatPoints = 0;
     private int availableBasePoints = 0;
+    private string selectedCardRewardName;
+    private int selectedCardRewardIndex;
     private System.Random random = new System.Random();
 
 
@@ -53,7 +61,6 @@ public class LevelUpManager : MonoBehaviour
     {
         UpdateEXPSlider();
     }
-
 
     public void AddExperience(int amount)
     {
@@ -71,14 +78,12 @@ public class LevelUpManager : MonoBehaviour
         UpdateEXPSlider();
     }
 
-
     private void UpdateEXPSlider()
     {
         experienceText.text = currentExperience + "/" + expThresholds[level];
         experienceSlider.value = currentExperience;
         experienceSlider.maxValue = expThresholds[level];
     }
-
 
     private void CheckLevelUp()
     {
@@ -89,7 +94,6 @@ public class LevelUpManager : MonoBehaviour
         }
     }
 
-
     private void LevelUp()
     {
         levelUpInProgress = true;
@@ -99,14 +103,19 @@ public class LevelUpManager : MonoBehaviour
         availableStatPoints += 2;
         availableBasePoints += 1;
 
+        increaseStrengthButton.interactable = true;
+        increaseIntelligenceButton.interactable = true;
+        increaseWisdomButton.interactable = true;
+        increaseHealthButton.interactable = true;
+        increaseManaButton.interactable = true;
+
         playerController.SetHealthFull();
         playerController.SetManaFull();
 
-        OpenLevelUpOptions();
+        OpenLevelUpPanel();
     }
 
-
-    private void OpenLevelUpOptions()
+    private void OpenLevelUpPanel()
     {
         levelUpPanel.SetActive(true);
         GameManager.Instance.HideBasicUI();
@@ -115,19 +124,18 @@ public class LevelUpManager : MonoBehaviour
         levelText.text = "Lv." + level.ToString();
         levelUpTitle.text = "You have reached Level " + level.ToString() + "!";
 
-        increaseStrengthButton.interactable = true;
-        increaseIntelligenceButton.interactable = true;
-        increaseWisdomButton.interactable = true;
-        increaseHealthButton.interactable = true;
-        increaseManaButton.interactable = true;
-        confirmButton.interactable = false;
+        cancelButton.SetActive(false);
+        confirmButton.SetActive(false);
+        skipButton.SetActive(true);
 
-        ShowLevelUpOptions();
+        rewardSelectionView.SetActive(true);
+        skipRewardView.SetActive(false);
+
+        ShowLevelUpCardSelection();
         UpdateStatUI();
 
         Time.timeScale = 0;
     }
-
 
     public void CloseLevelUpPanel()
     {
@@ -137,11 +145,15 @@ public class LevelUpManager : MonoBehaviour
         Time.timeScale = 1;
         levelUpInProgress = false;
 
+        if (!string.IsNullOrEmpty(selectedCardRewardName))
+        {
+            spellBook.AddSpell(selectedCardRewardName);
+        }
+
         AddExperience(bufferedExperience);
     }
 
-
-    private void ShowLevelUpOptions()
+    private void ShowLevelUpCardSelection()
     {
         List<SpellBook.Spell> eligibleSpells = spellBook.spells.Where(spell => spell.minLevel <= level).ToList();
 
@@ -166,19 +178,23 @@ public class LevelUpManager : MonoBehaviour
         }
     }
 
-
     private void SelectSpell(SpellBook.Spell spell, int selectedIndex)
     {
-        spellBook.AddSpell(spell.name);
+        selectedCardRewardName = spell.name;
+        selectedCardRewardIndex = selectedIndex;
+
         for (int i = 0; i < cardImages.Length; i++)
         {
-            if (i != selectedIndex)
+            if (i != selectedCardRewardIndex)
             {
                 StartCoroutine(FadeOutCard(cardImages[i]));
             }
         }
-    }
 
+        confirmButton.SetActive(true);
+        cancelButton.SetActive(true);
+        skipButton.SetActive(false);
+    }
 
     private IEnumerator FadeOutCard(Image cardImage)
     {
@@ -195,9 +211,42 @@ public class LevelUpManager : MonoBehaviour
         }
 
         cardImage.gameObject.SetActive(false);
-        confirmButton.interactable = true;
     }
 
+    private IEnumerator FadeInCard(Image cardImage)
+    {
+        float duration = 0.5f;
+        float currentTime = 0f;
+        Color originalColor = cardImage.color;
+        cardImage.gameObject.SetActive(true);
+
+        while (currentTime < duration)
+        {
+            float alpha = Mathf.Lerp(0f, 1f, currentTime / duration);
+            cardImage.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+            currentTime += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        cardImage.color = new Color(originalColor.r, originalColor.g, originalColor.b, 1f);
+    }
+
+    public void cancelSelectedReward()
+    {
+        selectedCardRewardName = "";
+
+        for (int i = 0; i < cardImages.Length; i++)
+        {
+            if (i != selectedCardRewardIndex)
+            {
+                StartCoroutine(FadeInCard(cardImages[i]));
+            }
+        }
+
+        confirmButton.SetActive(false);
+        cancelButton.SetActive(false);
+        skipButton.SetActive(true);
+    }
 
     public void IncreaseStrength()
     {
@@ -206,7 +255,6 @@ public class LevelUpManager : MonoBehaviour
         UpdateStatUI();
     }
 
-
     public void IncreaseIntelligence()
     {
         playerController.SetIntelligence(playerController.GetIntelligence() + 1);
@@ -214,14 +262,12 @@ public class LevelUpManager : MonoBehaviour
         UpdateStatUI();
     }
 
-
     public void IncreaseWisdom()
     {
         playerController.SetWisdom(playerController.GetWisdom() + 1);
         availableStatPoints--;
         UpdateStatUI();
     }
-
 
     public void IncreaseMaxHealth()
     {
@@ -231,7 +277,6 @@ public class LevelUpManager : MonoBehaviour
         UpdateStatUI();
     }
 
-
     public void IncreaseMaxMana()
     {
         playerController.AddMaxMana(10);
@@ -239,7 +284,6 @@ public class LevelUpManager : MonoBehaviour
         availableBasePoints--;
         UpdateStatUI();
     }
-
 
     private void UpdateStatUI()
     {
@@ -265,5 +309,17 @@ public class LevelUpManager : MonoBehaviour
             increaseManaButton.interactable = false;
             availableBasePointsText.text = "";
         }
+    }
+
+    public void closeSkipRewardView()
+    {
+        skipRewardView.SetActive(false);
+        rewardSelectionView.SetActive(true);
+    }
+
+    public void openSkipRewardView()
+    {
+        rewardSelectionView.SetActive(false);
+        skipRewardView.SetActive(true);
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 public class GameManager : MonoBehaviour
@@ -157,5 +158,12 @@ public class GameManager : MonoBehaviour
             playerController.TakeDamage(5);
             yield return new WaitForSeconds(1f);
         }
+    }
+
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

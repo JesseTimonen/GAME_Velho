@@ -1,9 +1,9 @@
 using UnityEngine;
 
-public class OptionsMenu : MonoBehaviour
+public class PauseMenu : MonoBehaviour
 {
     [SerializeField] private InputController inputController;
-    [SerializeField] private GameObject optionsPanel;
+    [SerializeField] private GameObject pausePanel;
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
     [SerializeField] private AudioSource audioSource;
@@ -11,21 +11,22 @@ public class OptionsMenu : MonoBehaviour
 
     private void Update()
     {
-        if (inputController.OptionsPanelPressed && GameManager.Instance.UIPanelOpened == false)
+        // No other UI panel is open and escape pressed
+        if (inputController.EscapePressed && GameManager.Instance.UIPanelOpened == false)
         {
-            OpenOptionsPanel();
+            openPausePanel();
         }
-        else if ((inputController.OptionsPanelPressed || inputController.EscapePressed) && isOpen)
+        else if (isOpen && inputController.EscapePressed)
         {
-            CloseOptionsPanel();
+            closePausePanel();
         }
     }
 
-    public void OpenOptionsPanel()
+    public void openPausePanel()
     {
         GameManager.Instance.HideBasicUI();
         GameManager.Instance.UIPanelOpened = true;
-        optionsPanel.SetActive(true);
+        pausePanel.SetActive(true);
 
         audioSource.clip = panelOpenAudio;
         audioSource.Play();
@@ -35,11 +36,11 @@ public class OptionsMenu : MonoBehaviour
         isOpen = true;
     }
 
-    public void CloseOptionsPanel()
+    public void closePausePanel()
     {
         GameManager.Instance.ShowBasicUI();
         Time.timeScale = 1;
-        optionsPanel.SetActive(false);
+        pausePanel.SetActive(false);
 
 
         audioSource.clip = panelCloseAudio;

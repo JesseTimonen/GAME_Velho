@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-
 public class SpellDictionary : MonoBehaviour
 {
     [SerializeField] private InputController inputController;
@@ -13,31 +12,19 @@ public class SpellDictionary : MonoBehaviour
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
     [SerializeField] private AudioSource audioSource;
-
+    private bool isOpen = false;
 
     private void Update()
     {
-        if (inputController.SpellBookPanelPressed)
+        if (inputController.SpellBookPanelPressed && GameManager.Instance.UIPanelOpened == false)
         {
-            if (spellBookPanel.activeSelf)
-            {
-                CloseSpellBookPanelUI();
-            }
-            else if (GameManager.Instance.UIPanelOpened == false)
-            {
-                OpenSpellBookPanelUI();
-            }
+            OpenSpellCollectionPanel();
         }
-
-        if (inputController.EscapePressed)
+        else if ((inputController.SpellBookPanelPressed || inputController.EscapePressed) && isOpen)
         {
-            if (spellBookPanel.activeSelf)
-            {
-                CloseSpellBookPanelUI();
-            }
+            CloseSpellCollectionPanel();
         }
     }
-
 
     private void CreateSpellBookEntries()
     {
@@ -74,7 +61,6 @@ public class SpellDictionary : MonoBehaviour
         }
     }
 
-
     private void DeleteSpellBookEntries()
     {
         // Destroy the old entries after new ones are instantiated
@@ -90,8 +76,7 @@ public class SpellDictionary : MonoBehaviour
         }
     }
 
-
-    public void OpenSpellBookPanelUI()
+    public void OpenSpellCollectionPanel()
     {
         GameManager.Instance.HideBasicUI();
         GameManager.Instance.UIPanelOpened = true;
@@ -102,10 +87,11 @@ public class SpellDictionary : MonoBehaviour
         audioSource.Play();
 
         Time.timeScale = 0;
+
+        isOpen = true;
     }
 
-
-    public void CloseSpellBookPanelUI()
+    public void CloseSpellCollectionPanel()
     {
         GameManager.Instance.ShowBasicUI();
         Time.timeScale = 1;
@@ -114,6 +100,8 @@ public class SpellDictionary : MonoBehaviour
 
         audioSource.clip = panelCloseAudio;
         audioSource.Play();
+
+        isOpen = false;
 
         Invoke("CloseUIPanelReference", 0.1f);
     }

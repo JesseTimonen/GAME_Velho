@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
 
-
 public class SpellMastery : MonoBehaviour
 {
     [SerializeField] private InputController inputController;
@@ -17,36 +16,24 @@ public class SpellMastery : MonoBehaviour
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
     [SerializeField] private AudioSource audioSource;
+    private bool isOpen = false;
 
     private void Awake()
     {
         InitializeSpellUsage();
     }
 
-
     private void Update()
     {
-        if (inputController.MasteryPanelPressed)
+        if (inputController.MasteryPanelPressed && GameManager.Instance.UIPanelOpened == false)
         {
-            if (spellMasteryPanel.activeSelf)
-            {
-                CloseMasteryPanelUI();
-            }
-            else if (GameManager.Instance.UIPanelOpened == false)
-            {
-                OpenMasteryPanelUI();
-            }
+            OpenMasteryPanel();
         }
-
-        if (inputController.EscapePressed)
+        else if ((inputController.MasteryPanelPressed || inputController.EscapePressed) && isOpen)
         {
-            if (spellMasteryPanel.activeSelf)
-            {
-                CloseMasteryPanelUI();
-            }
+            CloseMasteryPanel();
         }
     }
-
 
     private void InitializeSpellUsage()
     {
@@ -55,7 +42,6 @@ public class SpellMastery : MonoBehaviour
             spellUsage.Add(spell.name, 0);
         }
     }
-
 
     public void IncreaseSpellUsage(string spellName)
     {
@@ -69,7 +55,6 @@ public class SpellMastery : MonoBehaviour
             Debug.LogWarning("Spell name not found in mastery tracking: " + spellName);
         }
     }
-
 
     private void CheckAndUpdateMasteryLevel(string spellName)
     {
@@ -93,7 +78,6 @@ public class SpellMastery : MonoBehaviour
         }
     }
 
-
     public int GetSpellMasteryLevel(string spellName)
     {
         int usageCount = spellUsage[spellName];
@@ -112,7 +96,6 @@ public class SpellMastery : MonoBehaviour
             return 1;
         }
     }
-
 
     private void CreateSpellEntries()
     {
@@ -142,7 +125,6 @@ public class SpellMastery : MonoBehaviour
             Destroy(child);
         }
     }
-
 
     private void UpdateEntryUI(GameObject entry, SpellBook.Spell spell)
     {
@@ -178,8 +160,7 @@ public class SpellMastery : MonoBehaviour
         }
     }
 
-
-    public void OpenMasteryPanelUI()
+    public void OpenMasteryPanel()
     {
         GameManager.Instance.HideBasicUI();
         GameManager.Instance.UIPanelOpened = true;
@@ -190,10 +171,11 @@ public class SpellMastery : MonoBehaviour
         audioSource.Play();
 
         Time.timeScale = 0;
+
+        isOpen = true;
     }
 
-
-    public void CloseMasteryPanelUI()
+    public void CloseMasteryPanel()
     {
         GameManager.Instance.ShowBasicUI();
         Time.timeScale = 1;
@@ -202,6 +184,8 @@ public class SpellMastery : MonoBehaviour
 
         audioSource.clip = panelCloseAudio;
         audioSource.Play();
+
+        isOpen = false;
 
         Invoke("CloseUIPanelReference", 0.1f);
     }
