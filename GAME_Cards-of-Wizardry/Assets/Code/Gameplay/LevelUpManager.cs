@@ -4,8 +4,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-using System.Data;
-
 
 public class LevelUpManager : MonoBehaviour
 {
@@ -47,15 +45,14 @@ public class LevelUpManager : MonoBehaviour
     [SerializeField] private List<int> expThresholds = new List<int>();
 
     private int currentExperience = 0;
-    private int bufferedExperience = 0;
     private int level = 1;
+    private int pendingLevelUps = 0;
     private bool levelUpInProgress = false;
     private int availableStatPoints = 0;
     private int availableBasePoints = 0;
     private string selectedCardRewardName;
     private int selectedCardRewardIndex;
     private System.Random random = new System.Random();
-
 
     private void Start()
     {
@@ -64,17 +61,8 @@ public class LevelUpManager : MonoBehaviour
 
     public void AddExperience(int amount)
     {
-        if (levelUpInProgress)
-        {
-            bufferedExperience += amount;
-        }
-        else
-        {
-            bufferedExperience = 0;
-            currentExperience += amount;
-            CheckLevelUp();
-        }
-
+        currentExperience += amount;
+        CheckLevelUp();
         UpdateEXPSlider();
     }
 
@@ -89,30 +77,31 @@ public class LevelUpManager : MonoBehaviour
     {
         while (level < expThresholds.Count && currentExperience >= expThresholds[level])
         {
-            LevelUp();
-            if (levelUpInProgress) { break; }
+            pendingLevelUps++;
+            currentExperience -= expThresholds[level];
+            level++;
+            availableStatPoints += 2;
+            availableBasePoints += 1;
+        }
+
+        if (pendingLevelUps > 0 && !levelUpInProgress)
+        {
+            StartCoroutine(ProcessLevelUps());
         }
     }
 
-    private void LevelUp()
+    private IEnumerator ProcessLevelUps()
     {
         levelUpInProgress = true;
-        currentExperience -= expThresholds[level];
-        level++;
 
-        availableStatPoints += 2;
-        availableBasePoints += 1;
+        while (pendingLevelUps > 0)
+        {
+            pendingLevelUps--;
+            OpenLevelUpPanel();
+            yield return new WaitUntil(() => !levelUpInProgress);
+        }
 
-        increaseStrengthButton.interactable = true;
-        increaseIntelligenceButton.interactable = true;
-        increaseWisdomButton.interactable = true;
-        increaseHealthButton.interactable = true;
-        increaseManaButton.interactable = true;
-
-        playerController.SetHealthFull();
-        playerController.SetManaFull();
-
-        OpenLevelUpPanel();
+        characterMenu.OpenCharacterPanel();
     }
 
     private void OpenLevelUpPanel()
@@ -143,14 +132,24 @@ public class LevelUpManager : MonoBehaviour
         GameManager.Instance.ShowBasicUI();
         levelUpPanel.SetActive(false);
         Time.timeScale = 1;
-        levelUpInProgress = false;
 
         if (!string.IsNullOrEmpty(selectedCardRewardName))
         {
             spellBook.AddSpell(selectedCardRewardName);
+            selectedCardRewardName = string.Empty;
         }
 
-        AddExperience(bufferedExperience);
+        levelUpInProgress = false;
+
+        // Process the next level-up if there are any remaining
+        if (pendingLevelUps > 0)
+        {
+            StartCoroutine(ProcessLevelUps());
+        }
+        else
+        {
+            characterMenu.OpenCharacterPanel();
+        }
     }
 
     private void ShowLevelUpCardSelection()
@@ -165,11 +164,12 @@ public class LevelUpManager : MonoBehaviour
             if (i < eligibleSpells.Count)
             {
                 cardImages[i].gameObject.SetActive(true);
-                cardImages[i].color = new Color(255, 255, 255, 1);
+                cardImages[i].color = new Color(1f, 1f, 1f, 0);
                 cardImages[i].sprite = Sprite.Create((Texture2D)eligibleSpells[i].basicCardSprite, new Rect(0.0f, 0.0f, eligibleSpells[i].basicCardSprite.width, eligibleSpells[i].basicCardSprite.height), new Vector2(0.5f, 0.5f));
                 cardImages[i].GetComponent<Button>().onClick.RemoveAllListeners();
                 int index = i;
                 cardImages[i].GetComponent<Button>().onClick.AddListener(() => SelectSpell(eligibleSpells[index], index));
+                StartCoroutine(FadeInCard(cardImages[i]));
             }
             else
             {
@@ -198,7 +198,7 @@ public class LevelUpManager : MonoBehaviour
 
     private IEnumerator FadeOutCard(Image cardImage)
     {
-        float duration = 0.5f;
+        float duration = 0.4f;
         float currentTime = 0f;
         Color originalColor = cardImage.color;
 
@@ -288,7 +288,7 @@ public class LevelUpManager : MonoBehaviour
     private void UpdateStatUI()
     {
         availableStatPointsText.text = availableStatPoints + " Available!";
-        availableBasePointsText.text = availableBasePoints +" Available!";
+        availableBasePointsText.text = availableBasePoints + " Available!";
         strengthText.text = "Strength: " + playerController.GetStrength();
         intelligenceText.text = "Intelligence: " + playerController.GetIntelligence();
         wisdomText.text = "Wisdom: " + playerController.GetWisdom();
