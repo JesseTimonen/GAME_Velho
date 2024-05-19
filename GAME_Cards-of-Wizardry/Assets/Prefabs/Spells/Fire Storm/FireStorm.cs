@@ -38,7 +38,10 @@ public class FireStorm : MonoBehaviour
 
         StartCoroutine(AnimateDissolveEffect());
 
-        CameraShakerHandler.Shake(explosionShake);
+        if (PlayerPrefs.GetInt("DisableScreenShake", 0) == 0)
+        {
+            CameraShakerHandler.Shake(explosionShake);
+        }
     }
 
 

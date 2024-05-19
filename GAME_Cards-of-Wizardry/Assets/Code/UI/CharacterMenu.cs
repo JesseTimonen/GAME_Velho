@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 public class CharacterMenu : MonoBehaviour
@@ -8,7 +9,22 @@ public class CharacterMenu : MonoBehaviour
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
     [SerializeField] private AudioSource audioSource;
+    private PlayerController playerController;
     private bool isOpen = false;
+
+    [Header("Stat Texts")]
+    [SerializeField] private TextMeshProUGUI healthText;
+    [SerializeField] private TextMeshProUGUI manaText;
+    [SerializeField] private TextMeshProUGUI manaRechargeText;
+    [SerializeField] private TextMeshProUGUI damageBoostText;
+    [SerializeField] private TextMeshProUGUI damageReductionText;
+    [SerializeField] private TextMeshProUGUI speedText;
+
+
+    private void Start()
+    {
+        playerController = GameManager.Instance.GetPlayerController();
+    }
 
     private void Update()
     {
@@ -22,6 +38,39 @@ public class CharacterMenu : MonoBehaviour
         }
     }
 
+    public void UpdateTexts()
+    {
+        // Health
+        healthText.text = "Health: " + Mathf.Ceil(playerController.GetCurrentHealth()) + "/" + Mathf.Ceil(playerController.GetMaxHealth());
+        if (playerController.GetTemporaryHealth() > 0)
+        {
+            healthText.text += " <color=#FFB400>(+" + Mathf.Ceil(playerController.GetTemporaryHealth()) + ")</color>";
+        }
+
+        // Mana
+        manaText.text = "Mana:" + Mathf.Ceil(playerController.GetCurrentMana()) + "/" + Mathf.Ceil(playerController.GetMaxMana());
+        if (playerController.GetTemporaryMana() > 0)
+        {
+            manaText.text += " <color=#FFB400>(+" + Mathf.Ceil(playerController.GetTemporaryMana()) + ")</color>";
+        }
+
+        // Mana Recharge
+        manaRechargeText.text = "Mana Recharge:" + playerController.GetCurrentManaRecharge().ToString("F2");
+
+        // Damage Boost
+        damageBoostText.text = "Damage Boost:" + Mathf.Round(playerController.GetDamageBoost() * 100f) + "%";
+        if (playerController.GetShieldDamageBoost() > 1)
+        {
+            damageBoostText.text += " <color=#FFB400>(+" + Mathf.Round((playerController.GetShieldDamageBoost() - 1) * 100f) + "%)</color>";
+        }
+
+        // Damage Reduction
+        damageReductionText.text = "Damage Reduction: " + Mathf.Round(playerController.GetDamageReduction() * 100f) + "%";
+
+        // Run Speed
+        speedText.text = "Run Speed: " + playerController.GetRunSpeed().ToString("F2");
+    }
+
     public void OpenCharacterPanel()
     {
         GameManager.Instance.HideBasicUI();
@@ -29,6 +78,8 @@ public class CharacterMenu : MonoBehaviour
 
         levelUpManager.ResetPointAllocations();
         levelUpManager.UpdateStatUI();
+
+        UpdateTexts();
 
         characterPanel.SetActive(true);
 

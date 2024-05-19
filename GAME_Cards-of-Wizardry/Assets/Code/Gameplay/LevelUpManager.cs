@@ -389,6 +389,8 @@ public class LevelUpManager : MonoBehaviour
         decreaseWisdomButton.interactable = allocatedWisdomPoints > 0;
         decreaseHealthButton.interactable = allocatedHealthPoints > 0;
         decreaseManaButton.interactable = allocatedManaPoints > 0;
+
+        characterMenu.UpdateTexts();
     }
 
     public void closeSkipRewardView()

@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Rendering;
-
+using UnityEngine.Audio;
 
 [System.Serializable]
 public struct SoundTrack
@@ -15,9 +14,10 @@ public struct SoundTrack
 [RequireComponent(typeof(AudioSource))]
 public class MusicManager : MonoBehaviour
 {
-    public static MusicManager instance;
+    [SerializeField] private AudioMixer audioMixer;
     [SerializeField] private SoundTrack[] soundTracks;
     private AudioSource audioSource;
+    public string currentlyPlaying = "";
 
 
     private void Awake()
@@ -28,6 +28,12 @@ public class MusicManager : MonoBehaviour
         {
             audioSource.volume = 0;
         }
+    }
+
+
+    private void Start()
+    {
+        ModifyVolumeLevels(PlayerPrefs.GetFloat("MusicVolume", 80f), PlayerPrefs.GetFloat("SpellVolume", 80f), PlayerPrefs.GetFloat("UIVolume", 80f));
     }
 
 
@@ -42,6 +48,7 @@ public class MusicManager : MonoBehaviour
 
         if (newTrack != null)
         {
+            currentlyPlaying = trackName;
             StartCoroutine(AnimateMusicCrossfade(newTrack, musicVolume, fadeDuration));
         }
         else
@@ -114,5 +121,13 @@ public class MusicManager : MonoBehaviour
         }
 
         return 1f;
+    }
+
+
+    public void ModifyVolumeLevels(float musicVolume, float spellVolume, float UIVolume)
+    {
+        audioMixer.SetFloat("MusicVolume", musicVolume - 80);
+        audioMixer.SetFloat("SpellVolume", spellVolume - 80);
+        audioMixer.SetFloat("UIVolume", UIVolume - 80);
     }
 }

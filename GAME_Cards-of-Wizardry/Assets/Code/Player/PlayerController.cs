@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private InputController inputController;
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Animator playerAnimator;
+    [SerializeField] private MusicManager musicManager;
 
 
     [Header("BUFFS AND DEBUFFS")]
@@ -48,6 +49,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI manaText;
     [SerializeField] private Slider healthSlider;
     [SerializeField] private Slider manaSlider;
+    [SerializeField] private Transform additionalHealthBarCanvas;
+    [SerializeField] private Slider additionalHealthSlider;
+    [SerializeField] private Slider additionalManaSlider;
+
+    [Header("Death")]
+    [SerializeField] private GameObject dieScreenPanel;
+    [SerializeField] private GameObject immortalityBuff;
+    private string lastPlayedSong = "";
 
     [Header("MOVEMENT")]
     private float moveSpeed = 3f;
@@ -85,6 +94,8 @@ public class PlayerController : MonoBehaviour
     private float freezeEndTime;
     private bool isFrozen = false;
     private bool isLookingRight = true;
+    private bool isImmortal = false;
+    private bool isdead = false;
 
 
     private void Start()
@@ -134,18 +145,25 @@ public class PlayerController : MonoBehaviour
         manaText.text = Mathf.Floor(currentMana).ToString();
         manaSlider.value = Mathf.Floor(currentMana);
         manaSlider.maxValue = Mathf.Floor(maxMana);
+
+        additionalHealthSlider.value = Mathf.Ceil(currentHealth);
+        additionalHealthSlider.maxValue = Mathf.Ceil(maxHealth);
+        additionalManaSlider.value = Mathf.Ceil(currentMana);
+        additionalManaSlider.maxValue = Mathf.Ceil(maxMana);
     }
 
 
     private void RechargeMana()
     {
         // Wisdom increases mana recharge by 5% per rank, adjustements might be needed when game balance becomes more clear
-        currentMana = Mathf.Min(maxMana, currentMana + manaRechargeRate * (1 + 0.05f * (wisdom - 1)) * Time.deltaTime);
+        currentMana = Mathf.Min(maxMana, currentMana + GetCurrentManaRecharge() * Time.deltaTime);
     }
 
 
     private void Move()
     {
+        if (isdead) return;
+
         if (inputController.Move.x != 0 || inputController.Move.y != 0)
         {
             playerAnimator.SetBool("IsMoving", true);
@@ -156,7 +174,13 @@ public class PlayerController : MonoBehaviour
         }
 
         // Strength increases movement speed by 2% per rank, adjustements might be needed when game balance becomes more clear
-        rb.velocity = new Vector2(inputController.Move.x, inputController.Move.y) * moveSpeed * (1 + 0.02f * (strength - 1));
+        rb.velocity = new Vector2(inputController.Move.x, inputController.Move.y) * GetRunSpeed();
+    }
+
+
+    public float GetRunSpeed()
+    {
+        return moveSpeed * (1 + 0.02f * (strength - 1));
     }
 
 
@@ -182,14 +206,22 @@ public class PlayerController : MonoBehaviour
 
         if (Mathf.Abs(distance) > 0.5f)
         {
+            Vector3 healthBarEulerAngles = additionalHealthBarCanvas.localRotation.eulerAngles;
+
             if (distance > 0 && !isLookingRight)
             {
                 transform.rotation = Quaternion.Euler(0, 0, 0);
+                healthBarEulerAngles.y = 180;
+                additionalHealthBarCanvas.localRotation = Quaternion.Euler(healthBarEulerAngles);
+
                 isLookingRight = true;
             }
             else if (distance < 0 && isLookingRight)
             {
                 transform.rotation = Quaternion.Euler(0, 180, 0);
+                healthBarEulerAngles.y = 0;
+                additionalHealthBarCanvas.localRotation = Quaternion.Euler(healthBarEulerAngles);
+
                 isLookingRight = false;
             }
         }
@@ -282,23 +314,75 @@ public class PlayerController : MonoBehaviour
 
     private void ApplyDamage(int amount)
     {
-        float damageReductionFactor = (float)strength / (strength + 10);
-        int damageTaken = Mathf.RoundToInt(amount * (1 - damageReductionFactor));
+        int damageTaken = Mathf.RoundToInt(amount * (1 - GetDamageReduction()));
 
         currentHealth -= damageTaken;
 
+
         if (currentHealth <= 0)
         {
-            currentHealth = 0;
-            Die();
+            if (isImmortal)
+            {
+                currentHealth = 1;
+            }
+            else
+            {
+                currentHealth = 0;
+                Die();
+            }
         }
+    }
+
+
+    public float GetDamageReduction()
+    {
+        return (float)strength / (strength + 10);
     }
 
 
     public void Die()
     {
-        Debug.Log("You died, game over!");
-        // TODO: Show Message and give option to reload scene
+        if (isImmortal) { return; }
+        isImmortal = true;
+        isdead = true;
+        SetCurrentHealth(1f);
+
+        lastPlayedSong = musicManager.currentlyPlaying;
+        musicManager.PlayMusic("Ending");
+
+        playerAnimator.SetBool("isDead", true);
+        GameManager.Instance.UIPanelOpened = true;
+        GameManager.Instance.HideBasicUI();
+
+        if (healCoroutine != null)
+        {
+            StopCoroutine(healCoroutine);
+            healCoroutine = null;
+        }
+
+        Invoke("DieScreen", 1f);
+    }
+
+
+    public void DieScreen()
+    {
+        dieScreenPanel.SetActive(true);
+    }
+
+
+    public void DefyDeath()
+    {
+        musicManager.PlayMusic(lastPlayedSong);
+
+        immortalityBuff.SetActive(true);
+
+        playerAnimator.SetBool("isDead", false);
+        dieScreenPanel.SetActive(false);
+
+        GameManager.Instance.UIPanelOpened = false;
+        GameManager.Instance.ShowBasicUI();
+
+        isdead = false;
     }
 
 
@@ -430,6 +514,12 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    public float GetTemporaryHealth()
+    {
+        return tempMaxHealth;
+    }
+
+
     public void SetMaxHealth(float value)
     {
         maxHealth = value;
@@ -486,6 +576,11 @@ public class PlayerController : MonoBehaviour
         return currentMana;
     }
 
+    public float GetCurrentManaRecharge()
+    {
+        return manaRechargeRate * (1 + 0.05f * (wisdom - 1));
+    }
+
 
     public void SetCurrentMana(float value)
     {
@@ -535,6 +630,12 @@ public class PlayerController : MonoBehaviour
     public float GetMaxMana()
     {
         return maxMana;
+    }
+
+
+    public float GetTemporaryMana()
+    {
+        return tempMaxMana;
     }
 
 
@@ -675,6 +776,8 @@ public class PlayerController : MonoBehaviour
 
     public float GetShieldDamageBoost()
     {
+        if (!shieldDamageBuffEnabled) return 1f;
+
         // Each point of shieldAmount increases damage by 1%
         return 1f + (Mathf.Min(shieldAmount, shieldMaxDamageAt) * 0.001f);
     }

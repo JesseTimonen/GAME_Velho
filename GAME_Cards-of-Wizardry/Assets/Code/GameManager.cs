@@ -23,6 +23,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject survivalCurseDebuffIcon;
     [SerializeField] private TextMeshProUGUI survivalCurseText;
     [SerializeField] private GameObject fearDebuffIcon;
+    [SerializeField] private GameObject additionalHealthManaBarsCanvas;
+    [SerializeField] private GameObject additionalHealthBar;
+    [SerializeField] private GameObject additionalManaBar;
 
     public bool gameHasStarted = false;
     public bool UIPanelOpened = false;
@@ -48,6 +51,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
+        DisplayAdditionalHealthManaBars();
         TitleScreenAnimator.SetTrigger("StartGame");
         waveManager.SetActive(true);
         spellBook.Initialize();
@@ -111,6 +115,17 @@ public class GameManager : MonoBehaviour
         {
             wis20CardUnlock.SetActive(true);
         }
+    }
+
+
+    public void DisplayAdditionalHealthManaBars()
+    {
+        bool showHealthBar = PlayerPrefs.GetInt("ShowHPBar", 0) == 1 ? true : false;
+        bool showManaBar = PlayerPrefs.GetInt("ShowManaBar", 0) == 1 ? true : false;
+
+        additionalHealthManaBarsCanvas.SetActive(showHealthBar || showManaBar);
+        additionalHealthBar.SetActive(showHealthBar);
+        additionalManaBar.SetActive(showManaBar);
     }
 
 
