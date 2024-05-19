@@ -32,6 +32,11 @@ public class LevelUpManager : MonoBehaviour
     [SerializeField] private Button increaseWisdomButton;
     [SerializeField] private Button increaseHealthButton;
     [SerializeField] private Button increaseManaButton;
+    [SerializeField] private Button decreaseStrengthButton;
+    [SerializeField] private Button decreaseIntelligenceButton;
+    [SerializeField] private Button decreaseWisdomButton;
+    [SerializeField] private Button decreaseHealthButton;
+    [SerializeField] private Button decreaseManaButton;
 
     [Header("Views")]
     [SerializeField] private GameObject cancelButton;
@@ -53,6 +58,12 @@ public class LevelUpManager : MonoBehaviour
     private string selectedCardRewardName;
     private int selectedCardRewardIndex;
     private System.Random random = new System.Random();
+    private int allocatedStrengthPoints = 0;
+    private int allocatedIntelligencePoints = 0;
+    private int allocatedWisdomPoints = 0;
+    private int allocatedHealthPoints = 0;
+    private int allocatedManaPoints = 0;
+
 
     private void Start()
     {
@@ -252,6 +263,15 @@ public class LevelUpManager : MonoBehaviour
     {
         playerController.SetStrength(playerController.GetStrength() + 1);
         availableStatPoints--;
+        allocatedStrengthPoints++;
+        UpdateStatUI();
+    }
+
+    public void DecreaseStrength()
+    {
+        playerController.SetStrength(playerController.GetStrength() - 1);
+        availableStatPoints++;
+        allocatedStrengthPoints--;
         UpdateStatUI();
     }
 
@@ -259,6 +279,15 @@ public class LevelUpManager : MonoBehaviour
     {
         playerController.SetIntelligence(playerController.GetIntelligence() + 1);
         availableStatPoints--;
+        allocatedIntelligencePoints++;
+        UpdateStatUI();
+    }
+
+    public void DecreaseIntelligence()
+    {
+        playerController.SetIntelligence(playerController.GetIntelligence() - 1);
+        availableStatPoints++;
+        allocatedIntelligencePoints--;
         UpdateStatUI();
     }
 
@@ -266,6 +295,15 @@ public class LevelUpManager : MonoBehaviour
     {
         playerController.SetWisdom(playerController.GetWisdom() + 1);
         availableStatPoints--;
+        allocatedWisdomPoints++;
+        UpdateStatUI();
+    }
+
+    public void DecreaseWisdom()
+    {
+        playerController.SetWisdom(playerController.GetWisdom() - 1);
+        availableStatPoints++;
+        allocatedWisdomPoints--;
         UpdateStatUI();
     }
 
@@ -274,6 +312,16 @@ public class LevelUpManager : MonoBehaviour
         playerController.AddMaxHealth(50);
         playerController.SetHealthFull();
         availableBasePoints--;
+        allocatedHealthPoints++;
+        UpdateStatUI();
+    }
+
+    public void DecreaseMaxHealth()
+    {
+        playerController.AddMaxHealth(-50);
+        playerController.SetHealthFull();
+        availableBasePoints++;
+        allocatedHealthPoints--;
         UpdateStatUI();
     }
 
@@ -282,33 +330,65 @@ public class LevelUpManager : MonoBehaviour
         playerController.AddMaxMana(10);
         playerController.SetManaFull();
         availableBasePoints--;
+        allocatedManaPoints++;
         UpdateStatUI();
     }
 
-    private void UpdateStatUI()
+    public void DecreaseMaxMana()
     {
-        availableStatPointsText.text = availableStatPoints + " Available!";
-        availableBasePointsText.text = availableBasePoints + " Available!";
+        playerController.AddMaxMana(-10);
+        playerController.SetManaFull();
+        availableBasePoints++;
+        allocatedManaPoints--;
+        UpdateStatUI();
+    }
+
+    public void ResetPointAllocations()
+    {
+        allocatedStrengthPoints = 0;
+        allocatedIntelligencePoints = 0;
+        allocatedWisdomPoints = 0;
+        allocatedHealthPoints = 0;
+        allocatedManaPoints = 0;
+    }
+
+    public void UpdateStatUI()
+    {
         strengthText.text = "Strength: " + playerController.GetStrength();
         intelligenceText.text = "Intelligence: " + playerController.GetIntelligence();
         wisdomText.text = "Wisdom: " + playerController.GetWisdom();
         healthText.text = "Max Health: " + playerController.GetMaxHealth();
         manaText.text = "Max Mana: " + playerController.GetMaxMana();
 
-        if (availableStatPoints <= 0)
+        if (availableStatPoints > 0)
         {
-            increaseStrengthButton.interactable = false;
-            increaseIntelligenceButton.interactable = false;
-            increaseWisdomButton.interactable = false;
+            availableStatPointsText.text = availableStatPoints + " Available!";
+        }
+        else
+        {
             availableStatPointsText.text = "";
         }
 
-        if (availableBasePoints <= 0)
+        if (availableBasePoints > 0)
         {
-            increaseHealthButton.interactable = false;
-            increaseManaButton.interactable = false;
+            availableBasePointsText.text = availableBasePoints + " Available!";
+        }
+        else
+        {
             availableBasePointsText.text = "";
         }
+
+        increaseStrengthButton.interactable = availableStatPoints > 0;
+        increaseIntelligenceButton.interactable = availableStatPoints > 0;
+        increaseWisdomButton.interactable = availableStatPoints > 0;
+        increaseHealthButton.interactable = availableBasePoints > 0;
+        increaseManaButton.interactable = availableBasePoints > 0;
+
+        decreaseStrengthButton.interactable = allocatedStrengthPoints > 0;
+        decreaseIntelligenceButton.interactable = allocatedIntelligencePoints > 0;
+        decreaseWisdomButton.interactable = allocatedWisdomPoints > 0;
+        decreaseHealthButton.interactable = allocatedHealthPoints > 0;
+        decreaseManaButton.interactable = allocatedManaPoints > 0;
     }
 
     public void closeSkipRewardView()

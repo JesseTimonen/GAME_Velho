@@ -3,6 +3,7 @@ using UnityEngine;
 public class CharacterMenu : MonoBehaviour
 {
     [SerializeField] private InputController inputController;
+    [SerializeField] private LevelUpManager levelUpManager;
     [SerializeField] private GameObject characterPanel;
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
@@ -25,6 +26,10 @@ public class CharacterMenu : MonoBehaviour
     {
         GameManager.Instance.HideBasicUI();
         GameManager.Instance.UIPanelOpened = true;
+
+        levelUpManager.ResetPointAllocations();
+        levelUpManager.UpdateStatUI();
+
         characterPanel.SetActive(true);
 
         audioSource.clip = panelOpenAudio;
