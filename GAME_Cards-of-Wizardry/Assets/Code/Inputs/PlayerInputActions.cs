@@ -73,15 +73,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Challenges Panel"",
-                    ""type"": ""Button"",
-                    ""id"": ""1294e920-1872-4350-b96b-e8ce15936dd8"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""Leaderboards Panel"",
                     ""type"": ""Button"",
                     ""id"": ""b9ec1b17-af05-44d1-8680-844e381275aa"",
@@ -276,7 +267,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""7719e359-4cfe-44ee-9911-431dc65977ff"",
-                    ""path"": ""<Keyboard>/p"",
+                    ""path"": ""<Keyboard>/o"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -308,17 +299,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""12d76fb9-a86d-47ec-a26f-f91f43443588"",
-                    ""path"": ""<Keyboard>/o"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Challenges Panel"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""6e7e2c13-ea05-45aa-80e1-fe6357ee90df"",
                     ""path"": ""<Keyboard>/h"",
                     ""interactions"": """",
@@ -340,7 +320,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_DefaultGameplay_CharacterPanel = m_DefaultGameplay.FindAction("Character Panel", throwIfNotFound: true);
         m_DefaultGameplay_MasteryPanel = m_DefaultGameplay.FindAction("Mastery Panel", throwIfNotFound: true);
         m_DefaultGameplay_SpellBookPanel = m_DefaultGameplay.FindAction("Spell Book Panel", throwIfNotFound: true);
-        m_DefaultGameplay_ChallengesPanel = m_DefaultGameplay.FindAction("Challenges Panel", throwIfNotFound: true);
         m_DefaultGameplay_LeaderboardsPanel = m_DefaultGameplay.FindAction("Leaderboards Panel", throwIfNotFound: true);
         m_DefaultGameplay_HelpPanel = m_DefaultGameplay.FindAction("Help Panel", throwIfNotFound: true);
         m_DefaultGameplay_OptionsPanel = m_DefaultGameplay.FindAction("Options Panel", throwIfNotFound: true);
@@ -411,7 +390,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_DefaultGameplay_CharacterPanel;
     private readonly InputAction m_DefaultGameplay_MasteryPanel;
     private readonly InputAction m_DefaultGameplay_SpellBookPanel;
-    private readonly InputAction m_DefaultGameplay_ChallengesPanel;
     private readonly InputAction m_DefaultGameplay_LeaderboardsPanel;
     private readonly InputAction m_DefaultGameplay_HelpPanel;
     private readonly InputAction m_DefaultGameplay_OptionsPanel;
@@ -425,7 +403,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @CharacterPanel => m_Wrapper.m_DefaultGameplay_CharacterPanel;
         public InputAction @MasteryPanel => m_Wrapper.m_DefaultGameplay_MasteryPanel;
         public InputAction @SpellBookPanel => m_Wrapper.m_DefaultGameplay_SpellBookPanel;
-        public InputAction @ChallengesPanel => m_Wrapper.m_DefaultGameplay_ChallengesPanel;
         public InputAction @LeaderboardsPanel => m_Wrapper.m_DefaultGameplay_LeaderboardsPanel;
         public InputAction @HelpPanel => m_Wrapper.m_DefaultGameplay_HelpPanel;
         public InputAction @OptionsPanel => m_Wrapper.m_DefaultGameplay_OptionsPanel;
@@ -454,9 +431,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SpellBookPanel.started += instance.OnSpellBookPanel;
             @SpellBookPanel.performed += instance.OnSpellBookPanel;
             @SpellBookPanel.canceled += instance.OnSpellBookPanel;
-            @ChallengesPanel.started += instance.OnChallengesPanel;
-            @ChallengesPanel.performed += instance.OnChallengesPanel;
-            @ChallengesPanel.canceled += instance.OnChallengesPanel;
             @LeaderboardsPanel.started += instance.OnLeaderboardsPanel;
             @LeaderboardsPanel.performed += instance.OnLeaderboardsPanel;
             @LeaderboardsPanel.canceled += instance.OnLeaderboardsPanel;
@@ -488,9 +462,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SpellBookPanel.started -= instance.OnSpellBookPanel;
             @SpellBookPanel.performed -= instance.OnSpellBookPanel;
             @SpellBookPanel.canceled -= instance.OnSpellBookPanel;
-            @ChallengesPanel.started -= instance.OnChallengesPanel;
-            @ChallengesPanel.performed -= instance.OnChallengesPanel;
-            @ChallengesPanel.canceled -= instance.OnChallengesPanel;
             @LeaderboardsPanel.started -= instance.OnLeaderboardsPanel;
             @LeaderboardsPanel.performed -= instance.OnLeaderboardsPanel;
             @LeaderboardsPanel.canceled -= instance.OnLeaderboardsPanel;
@@ -527,7 +498,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnCharacterPanel(InputAction.CallbackContext context);
         void OnMasteryPanel(InputAction.CallbackContext context);
         void OnSpellBookPanel(InputAction.CallbackContext context);
-        void OnChallengesPanel(InputAction.CallbackContext context);
         void OnLeaderboardsPanel(InputAction.CallbackContext context);
         void OnHelpPanel(InputAction.CallbackContext context);
         void OnOptionsPanel(InputAction.CallbackContext context);

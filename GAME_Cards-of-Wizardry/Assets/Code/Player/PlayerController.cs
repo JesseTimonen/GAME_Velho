@@ -285,7 +285,7 @@ public class PlayerController : MonoBehaviour
     {
         while (Time.time < burnEndTime)
         {
-            TakeDamage(8);
+            TakeDamage(10);
             fireIconTimer.text = $"{Mathf.CeilToInt(burnEndTime - Time.time)}s";
             yield return new WaitForSeconds(1f);
         }
@@ -425,7 +425,7 @@ public class PlayerController : MonoBehaviour
         if (shieldDamageBuffEnabled)
         {
             ShieldDamageUIElement.SetActive(shieldAmount > 0);
-            float shieldDamage = Mathf.Min(shieldAmount, shieldMaxDamageAt) * 0.1f;
+            float shieldDamage = (GetShieldDamageBoost() - 1) * 100;
             ShieldDamageValueText.text = Mathf.Round(shieldDamage).ToString() + "%";
         }
     }
@@ -778,8 +778,8 @@ public class PlayerController : MonoBehaviour
     {
         if (!shieldDamageBuffEnabled) return 1f;
 
-        // Each point of shieldAmount increases damage by 1%
-        return 1f + (Mathf.Min(shieldAmount, shieldMaxDamageAt) * 0.001f);
+        // Each point of shieldAmount increases damage by 0.5%
+        return 1f + (Mathf.Min(shieldAmount, shieldMaxDamageAt) * 0.0005f);
     }
 
     public float GetDamageBoost()

@@ -157,14 +157,17 @@ public class Wizard : MonoBehaviour
 
     private IEnumerator Teleport()
     {
-        isTeleporting = true;
-        boxCollider.enabled = false;
-        yield return StartCoroutine(DissolveEffect(false));
-        transform.position = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
-        yield return StartCoroutine(DissolveEffect(true));
-        teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
-        boxCollider.enabled = true;
-        isTeleporting = false;
+        if (!isTeleporting)
+        {
+            isTeleporting = true;
+            boxCollider.enabled = false;
+            yield return StartCoroutine(DissolveEffect(false));
+            transform.position = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
+            yield return StartCoroutine(DissolveEffect(true));
+            teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
+            boxCollider.enabled = true;
+            isTeleporting = false;
+        }
     }
 
 

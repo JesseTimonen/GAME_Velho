@@ -11,7 +11,6 @@ public class InputController : MonoBehaviour
     public bool CharacterPanelPressed { get; private set; }
     public bool MasteryPanelPressed { get; private set; }
     public bool SpellBookPanelPressed { get; private set; }
-    public bool ChallengesPanelPressed { get; private set; }
     public bool LeaderboardsPanelPressed { get; private set; }
     public bool OptionsPanelPressed { get; private set; }
     public bool HelpPanelPressed { get; private set; }
@@ -55,7 +54,6 @@ public class InputController : MonoBehaviour
             CharacterPanelPressed = PlayerInputActions.DefaultGameplay.CharacterPanel.WasPressedThisFrame();
             MasteryPanelPressed = PlayerInputActions.DefaultGameplay.MasteryPanel.WasPressedThisFrame();
             SpellBookPanelPressed = PlayerInputActions.DefaultGameplay.SpellBookPanel.WasPressedThisFrame();
-            ChallengesPanelPressed = PlayerInputActions.DefaultGameplay.ChallengesPanel.WasPressedThisFrame();
             LeaderboardsPanelPressed = PlayerInputActions.DefaultGameplay.LeaderboardsPanel.WasPressedThisFrame();
             OptionsPanelPressed = PlayerInputActions.DefaultGameplay.OptionsPanel.WasPressedThisFrame();
             HelpPanelPressed = PlayerInputActions.DefaultGameplay.HelpPanel.WasPressedThisFrame();

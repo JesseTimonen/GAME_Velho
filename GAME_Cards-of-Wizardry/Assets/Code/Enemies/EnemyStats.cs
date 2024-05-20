@@ -149,7 +149,7 @@ public class EnemyStats : MonoBehaviour
     {
         while (Time.time < burnEndTime)
         {
-            TakeDamage(8);
+            TakeDamage(10);
             yield return new WaitForSeconds(1f);
         }
 

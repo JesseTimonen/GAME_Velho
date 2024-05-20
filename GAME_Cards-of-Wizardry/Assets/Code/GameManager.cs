@@ -48,13 +48,16 @@ public class GameManager : MonoBehaviour
         Settings();
     }
 
+    private void Start()
+    {
+        spellBook.Initialize();
+    }
 
     public void StartGame()
     {
         DisplayAdditionalHealthManaBars();
         TitleScreenAnimator.SetTrigger("StartGame");
         waveManager.SetActive(true);
-        spellBook.Initialize();
         gameHasStarted = true;
         WindAudioObject.SetActive(true);
         Invoke("ShowBasicUI", 2f);
@@ -137,7 +140,7 @@ public class GameManager : MonoBehaviour
             survivalCurseDebuffIcon.SetActive(true);
 
             int buffAmount = Mathf.RoundToInt(survivalWave * 50f);
-            survivalCurseText.text = "After the fall of the grand wizard you sense that the darkness grows quickly.\r\n\r\nEndless Curse Tier " + survivalWave + "\r\nEnemies have " + buffAmount + "% more health\r\nEnemies Deal " + buffAmount + "% more damage";
+            survivalCurseText.text = "After the fall of the grand wizard you sense that the darkness grows quickly.\r\n\r\nEndless Curse Tier " + survivalWave + "\r\nEnemies have " + buffAmount + "% more health.\r\nEnemies Deal " + buffAmount + "% more damage.";
         }
     }
 

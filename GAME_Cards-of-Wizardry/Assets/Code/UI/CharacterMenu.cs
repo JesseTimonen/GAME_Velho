@@ -55,7 +55,7 @@ public class CharacterMenu : MonoBehaviour
         }
 
         // Mana Recharge
-        manaRechargeText.text = "Mana Recharge:" + playerController.GetCurrentManaRecharge().ToString("F2");
+        manaRechargeText.text = "Mana Regeneration:" + playerController.GetCurrentManaRecharge().ToString("F2");
 
         // Damage Boost
         damageBoostText.text = "Damage Boost:" + Mathf.Round(playerController.GetDamageBoost() * 100f) + "%";
