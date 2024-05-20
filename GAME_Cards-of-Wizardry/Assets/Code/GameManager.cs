@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject additionalManaBar;
 
     public bool gameHasStarted = false;
+    public bool hasPlayerDied = false;
     public bool UIPanelOpened = false;
     private float survivalModifier = 1f;
     public bool isFearActive = false;

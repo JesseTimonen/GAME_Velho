@@ -54,7 +54,7 @@ public class SpellBook : ScriptableObject
         AddSpell("Fire Storm", 1);
 
         // Testing
-        AddSpell("Freeze", 3);
+        // AddSpell("Freeze", 3);
         //AddSpell("Fireball", 1);
         //AddSpell("Fire Storm", 1);
         //AddSpell("Shield", 1);

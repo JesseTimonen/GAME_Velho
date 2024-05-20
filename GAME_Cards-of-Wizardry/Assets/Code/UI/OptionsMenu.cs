@@ -17,9 +17,11 @@ public class OptionsMenu : MonoBehaviour
     [Header("Audio")]
     [SerializeField] private MusicManager musicManager;
     [SerializeField] private Slider musicVolumeSlider;
+    [SerializeField] private Slider backgroundVolumeSlider;
     [SerializeField] private Slider spellVolumeSlider;
     [SerializeField] private Slider UIVolumeSlider;
     [SerializeField] private TextMeshProUGUI musicVolumeText;
+    [SerializeField] private TextMeshProUGUI backgroundVolumeText;
     [SerializeField] private TextMeshProUGUI spellVolumeText;
     [SerializeField] private TextMeshProUGUI UIVolumeText;
     [SerializeField] private AudioSource spellFeedbackAudioSource;
@@ -71,6 +73,7 @@ public class OptionsMenu : MonoBehaviour
         audioSource.Play();
 
         musicVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("MusicVolume", 0));
+        backgroundVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("BackgroundVolume", 0));
         spellVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("SpellVolume", 0));
         UIVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("UIVolume", 0));
         UpdateVolumeSliders();
@@ -136,6 +139,7 @@ public class OptionsMenu : MonoBehaviour
         PlayerPrefs.SetInt("AutoPostScores", autoPostLeaderboardToggle.isOn ? 1 : 0);
         PlayerPrefs.SetString("Username", leaderboardUsernameField.text);
         PlayerPrefs.SetFloat("MusicVolume", musicVolumeSlider.value);
+        PlayerPrefs.SetFloat("BackgroundVolume", backgroundVolumeSlider.value);
         PlayerPrefs.SetFloat("SpellVolume", spellVolumeSlider.value);
         PlayerPrefs.SetFloat("UIVolume", UIVolumeSlider.value);
         PlayerPrefs.Save();
@@ -159,16 +163,19 @@ public class OptionsMenu : MonoBehaviour
         float volume = musicVolumeSlider.value + 60f;
         musicVolumeText.text = volume.ToString() + "%";
 
+        volume = backgroundVolumeSlider.value + 60f;
+        backgroundVolumeText.text = volume.ToString() + "%";
+
         volume = spellVolumeSlider.value + 60f;
         spellVolumeText.text = volume.ToString() + "%";
 
         volume = UIVolumeSlider.value + 60f;
         UIVolumeText.text = volume.ToString() + "%";
 
-        musicManager.ModifyVolumeLevels(musicVolumeSlider.value, spellVolumeSlider.value, UIVolumeSlider.value);
+        musicManager.ModifyVolumeLevels(musicVolumeSlider.value, backgroundVolumeSlider.value, spellVolumeSlider.value, UIVolumeSlider.value);
     }
 
-    public void playSpellAudioFeedback()
+    public void PlaySpellAudioFeedback()
     {
         if (canPlayFeedbackAudio)
         {
@@ -178,7 +185,7 @@ public class OptionsMenu : MonoBehaviour
         }
     }
 
-    public void playUIAudioFeedback()
+    public void PlayUIAudioFeedback()
     {
         if (canPlayFeedbackAudio)
         {
@@ -216,6 +223,9 @@ public class OptionsMenu : MonoBehaviour
     public void ResetProgression()
     {
         PlayerPrefs.DeleteAll();
+        PlayerPrefs.SetInt("InitialSetupCompleted", 1);
+        PlayerPrefs.Save();
+
         spellMastery.MassUpdateSpellCollection();
 
         resetProgressionRequestButton.GetComponent<HoverEffect>().enabled = true;

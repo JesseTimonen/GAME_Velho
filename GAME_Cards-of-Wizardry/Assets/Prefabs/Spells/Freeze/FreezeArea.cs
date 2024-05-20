@@ -10,6 +10,7 @@ public class FreezeArea : MonoBehaviour
     [SerializeField] private int minDamage = 60;
     [SerializeField] private int maxDamage = 85;
     [SerializeField] private float freezeDuration = 8f;
+    [SerializeField] private float playerFreezeDuration = 2f;
 
     [Header("Light Animation")]
     [SerializeField] private float initialLightIntensity = 5;
@@ -52,7 +53,6 @@ public class FreezeArea : MonoBehaviour
         float baseDamage = Random.Range(minDamage, maxDamage);
         float adjustedDamage = baseDamage / damageModifier;
         int finalDamage = Mathf.RoundToInt(playerDamageModifier * adjustedDamage);
-        float adjustedFreezeDuration = freezeDuration / damageModifier;
 
         if (isEnemy)
         {
@@ -63,6 +63,7 @@ public class FreezeArea : MonoBehaviour
 
             if (freezeDuration > 0)
             {
+                float adjustedFreezeDuration = freezeDuration / damageModifier;
                 enemy.Freeze(adjustedFreezeDuration);
             }
         }
@@ -72,6 +73,7 @@ public class FreezeArea : MonoBehaviour
 
             if (freezeDuration > 0)
             {
+                float adjustedFreezeDuration = playerFreezeDuration / damageModifier;
                 playerController.Freeze(adjustedFreezeDuration);
             }
         }

@@ -345,6 +345,7 @@ public class PlayerController : MonoBehaviour
         if (isImmortal) { return; }
         isImmortal = true;
         isdead = true;
+        GameManager.Instance.hasPlayerDied = true;
         SetCurrentHealth(1f);
 
         lastPlayedSong = musicManager.currentlyPlaying;

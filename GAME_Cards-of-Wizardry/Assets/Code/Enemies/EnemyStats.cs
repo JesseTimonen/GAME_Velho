@@ -48,7 +48,7 @@ public class EnemyStats : MonoBehaviour
 
     public void TakeDamage(int amount)
     {
-        if (isDead || isFrozen) return;
+        if (isDead) return;
 
         int reducedDamage = Mathf.CeilToInt(amount * (1 - damageReductionStrength));
         health -= reducedDamage;
