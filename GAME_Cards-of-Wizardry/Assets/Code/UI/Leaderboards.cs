@@ -1,5 +1,9 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class Leaderboards : MonoBehaviour
 {
@@ -7,7 +11,7 @@ public class Leaderboards : MonoBehaviour
     [SerializeField] private InputController inputController;
     [SerializeField] private GameObject leaderboardPanel;
     private bool isOpen = false;
-    
+
     [Header("Audio Clips")]
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
@@ -18,6 +22,10 @@ public class Leaderboards : MonoBehaviour
     [SerializeField] private TextMeshProUGUI speedrunTimerText;
     private float timeElapsed = 0f;
     private bool speedrunTimerStarted = false;
+
+    [Header("Leaderboard Display")]
+    [SerializeField] private TextMeshProUGUI speedrunScoresText;
+    [SerializeField] private TextMeshProUGUI survivalScoresText;
 
     private void Start()
     {
@@ -37,7 +45,7 @@ public class Leaderboards : MonoBehaviour
             UpdateSpeedrunTimerText();
         }
 
-        if (inputController.LeaderboardsPanelPressed && GameManager.Instance.UIPanelOpened == false)
+        if (inputController.LeaderboardsPanelPressed && !GameManager.Instance.UIPanelOpened)
         {
             OpenLeaderboardPanel();
         }
@@ -52,6 +60,9 @@ public class Leaderboards : MonoBehaviour
         GameManager.Instance.HideBasicUI();
         GameManager.Instance.UIPanelOpened = true;
         leaderboardPanel.SetActive(true);
+
+        StartCoroutine(FetchSpeedrunScores());
+        StartCoroutine(FetchSurvivalScores());
 
         audioSource.clip = panelOpenAudio;
         audioSource.Play();
@@ -109,12 +120,16 @@ public class Leaderboards : MonoBehaviour
     public void EndSpeedRunTimer()
     {
         speedrunTimerStarted = false;
-        PostSpeedrunScore();
+
+        if (!GameManager.Instance.hasPlayerDied)
+        {
+            PostSpeedrunScore();
+        }
     }
 
     private bool ShouldPostScores()
     {
-        if (!string.IsNullOrEmpty(PlayerPrefs.GetString("Username", "")))
+        if (string.IsNullOrEmpty(PlayerPrefs.GetString("Username", "")))
         {
             return false;
         }
@@ -130,14 +145,173 @@ public class Leaderboards : MonoBehaviour
     private void PostSpeedrunScore()
     {
         if (!ShouldPostScores()) return;
-
-        // TODO: Implement speedrun score posting logic using timeElapsed as score
+        StartCoroutine(PostScoreCoroutine("speedrun", timeElapsed));
     }
 
     public void PostRoundScore(int waveNumber)
     {
         if (!ShouldPostScores()) return;
+        StartCoroutine(PostScoreCoroutine("survival", waveNumber));
+    }
 
-        // TODO: Implement score posting logic using waveNumber as score
+    private IEnumerator PostScoreCoroutine(string mode, float score)
+    {
+        string url = "https://c2t6xbah.c2.suncomet.fi/post-score.php";
+        string username = PlayerPrefs.GetString("Username", "");
+        string scoreString = score.ToString();
+        string data = username + scoreString + mode;
+        string secretKey = "REPLACE_ME";
+        string hmac = ComputeHmacSha256(secretKey, data);
+
+        WWWForm form = new WWWForm();
+        form.AddField("username", username);
+        form.AddField("score", scoreString);
+        form.AddField("mode", mode);
+        form.AddField("hmac", hmac);
+
+        using (UnityWebRequest www = UnityWebRequest.Post(url, form))
+        {
+            yield return www.SendWebRequest();
+        }
+    }
+
+    private string ComputeHmacSha256(string key, string data)
+    {
+        var keyBytes = System.Text.Encoding.UTF8.GetBytes(key);
+        var dataBytes = System.Text.Encoding.UTF8.GetBytes(data);
+        using (var hmacSha256 = new System.Security.Cryptography.HMACSHA256(keyBytes))
+        {
+            var hashBytes = hmacSha256.ComputeHash(dataBytes);
+            return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+        }
+    }
+
+    private IEnumerator FetchSpeedrunScores()
+    {
+        speedrunScoresText.text = "Loading scores...";
+
+        string url = "https://c2t6xbah.c2.suncomet.fi/get-speedrun-scores.php";
+
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                speedrunScoresText.text = "Connection to leaderboards failed.";
+            }
+            else if (!string.IsNullOrEmpty(www.downloadHandler.text))
+            {
+                ProcessSpeedrunScores(www.downloadHandler.text);
+            }
+            else
+            {
+                speedrunScoresText.text = "";
+            }
+        }
+    }
+
+    private IEnumerator FetchSurvivalScores()
+    {
+        survivalScoresText.text = "Loading scores...";
+
+        string url = "https://c2t6xbah.c2.suncomet.fi/get-survival-scores.php";
+
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                survivalScoresText.text = "Connection to leaderboards failed.";
+            }
+            else if (!string.IsNullOrEmpty(www.downloadHandler.text))
+            {
+                ProcessSurvivalScores(www.downloadHandler.text);
+            }
+            else
+            {
+                survivalScoresText.text = "";
+            }
+        }
+    }
+
+    private void ProcessSpeedrunScores(string json)
+    {
+        ScoreList scores = JsonUtility.FromJson<ScoreList>(json);
+
+        speedrunScoresText.text = "";
+
+        for (int i = 0; i < scores.scores.Count; i++)
+        {
+            string color = "";
+            switch (i)
+            {
+                case 0:
+                    color = "#D5A500";
+                    break;
+                case 1:
+                    color = "#B7B7B7";
+                    break;
+                case 2:
+                    color = "#A17419";
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(color))
+            {
+                speedrunScoresText.text += $"<color={color}>{scores.scores[i].score} - {scores.scores[i].username}</color>\n";
+            }
+            else
+            {
+                speedrunScoresText.text += $"{scores.scores[i].score} - {scores.scores[i].username}\n";
+            }
+        }
+    }
+
+    private void ProcessSurvivalScores(string json)
+    {
+        ScoreList scores = JsonUtility.FromJson<ScoreList>(json);
+
+        survivalScoresText.text = "";
+
+        for (int i = 0; i < scores.scores.Count; i++)
+        {
+            string color = "";
+            switch (i)
+            {
+                case 0:
+                    color = "#D5A500";
+                    break;
+                case 1:
+                    color = "#B7B7B7";
+                    break;
+                case 2:
+                    color = "#A17419";
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(color))
+            {
+                survivalScoresText.text += $"<color={color}>{scores.scores[i].score} - {scores.scores[i].username}</color>\n";
+            }
+            else
+            {
+                survivalScoresText.text += $"{scores.scores[i].score} - {scores.scores[i].username}\n";
+            }
+        }
+    }
+
+    [System.Serializable]
+    public class Score
+    {
+        public string username;
+        public string score;
+    }
+
+    [System.Serializable]
+    public class ScoreList
+    {
+        public List<Score> scores;
     }
 }
