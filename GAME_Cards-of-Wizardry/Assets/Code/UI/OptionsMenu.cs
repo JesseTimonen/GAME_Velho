@@ -6,6 +6,8 @@ using UnityEngine.UI;
 public class OptionsMenu : MonoBehaviour
 {
     [SerializeField] private InputController inputController;
+    [SerializeField] private SpellMastery spellMastery;
+    [SerializeField] private SpellBook spellBook;
     [SerializeField] private GameObject optionsPanel;
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
@@ -30,7 +32,6 @@ public class OptionsMenu : MonoBehaviour
     [SerializeField] private Toggle showHPBarToggle;
     [SerializeField] private Toggle showManaBarToggle;
 
-
     [Header("Leaderboards")]
     [SerializeField] private Toggle showSpeedrunTimer;
     [SerializeField] private Toggle autoPostLeaderboardToggle;
@@ -38,11 +39,11 @@ public class OptionsMenu : MonoBehaviour
     [SerializeField] private TMP_InputField leaderboardUsernameField;
     [SerializeField] private TextMeshProUGUI invalidUsernameError;
 
-
     [Header("Progression")]
     [SerializeField] private TextMeshProUGUI resetProgressionRequestButton;
     [SerializeField] private GameObject confirmResetProgressionButton;
     [SerializeField] private GameObject cancelResetProgressionButton;
+    [SerializeField] private GameObject resetProgressionFeedback;
 
 
     private void Update()
@@ -57,26 +58,27 @@ public class OptionsMenu : MonoBehaviour
         }
     }
 
+
     public void OpenOptionsPanel()
     {
         GameManager.Instance.HideBasicUI();
         GameManager.Instance.UIPanelOpened = true;
         optionsPanel.SetActive(true);
+        resetProgressionFeedback.SetActive(false);
 
         audioSource.clip = panelOpenAudio;
         audioSource.Play();
 
-        leaderboardUsername.SetActive(PlayerPrefs.GetInt("AutoPostScores", 0) == 1);
-        invalidUsernameError.text = "";
-
-        musicVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("MusicVolume", 80));
-        spellVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("SpellVolume", 80));
-        UIVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("UIVolume", 80));
+        musicVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("MusicVolume", 0));
+        spellVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("SpellVolume", 0));
+        UIVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("UIVolume", 0));
         UpdateVolumeSliders();
 
         showSpeedrunTimer.isOn = PlayerPrefs.GetInt("ShowSpeedrunTimer", 0) == 1;
-        autoPostLeaderboardToggle.isOn = PlayerPrefs.GetInt("AutoPostScores", 1) == 1;
+        autoPostLeaderboardToggle.isOn = PlayerPrefs.GetInt("AutoPostScores", 0) == 1;
+        leaderboardUsername.SetActive(PlayerPrefs.GetInt("AutoPostScores", 0) == 1);
         leaderboardUsernameField.text = PlayerPrefs.GetString("Username", "");
+        invalidUsernameError.text = "";
 
         disableScreenShakeToggle.isOn = PlayerPrefs.GetInt("DisableScreenShake", 0) == 1;
         showHPBarToggle.isOn = PlayerPrefs.GetInt("ShowHPBar", 1) == 1;
@@ -143,20 +145,22 @@ public class OptionsMenu : MonoBehaviour
     }
 
 
-
     public void PostScoresAutomatically()
     {
         leaderboardUsername.SetActive(autoPostLeaderboardToggle.isOn);
     }
 
 
-
-
     public void UpdateVolumeSliders()
     {
-        musicVolumeText.text = musicVolumeSlider.value.ToString() + "%";
-        spellVolumeText.text = spellVolumeSlider.value.ToString() + "%";
-        UIVolumeText.text = UIVolumeSlider.value.ToString() + "%";
+        float volume = musicVolumeSlider.value + 60f;
+        musicVolumeText.text = volume.ToString() + "%";
+
+        volume = spellVolumeSlider.value + 60f;
+        spellVolumeText.text = volume.ToString() + "%";
+
+        volume = UIVolumeSlider.value + 60f;
+        UIVolumeText.text = volume.ToString() + "%";
 
         musicManager.ModifyVolumeLevels(musicVolumeSlider.value, spellVolumeSlider.value, UIVolumeSlider.value);
     }
@@ -196,6 +200,7 @@ public class OptionsMenu : MonoBehaviour
         resetProgressionRequestButton.GetComponent<HoverEffect>().enabled = false;
         confirmResetProgressionButton.SetActive(true);
         cancelResetProgressionButton.SetActive(true);
+        resetProgressionFeedback.SetActive(false);
     }
 
     public void CancelResetProgression()
@@ -208,10 +213,11 @@ public class OptionsMenu : MonoBehaviour
     public void ResetProgression()
     {
         PlayerPrefs.DeleteAll();
+        spellMastery.MassUpdateSpellCollection();
+
         resetProgressionRequestButton.GetComponent<HoverEffect>().enabled = true;
         confirmResetProgressionButton.SetActive(false);
         cancelResetProgressionButton.SetActive(false);
+        resetProgressionFeedback.SetActive(true);
     }
-
-
 }
