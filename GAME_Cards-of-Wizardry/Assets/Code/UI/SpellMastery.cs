@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
+using static SpellBook;
 
 public class SpellMastery : MonoBehaviour
 {
@@ -76,6 +77,32 @@ public class SpellMastery : MonoBehaviour
             PlayerPrefs.SetInt("FlawlessMastery_" + spellName, 1);
             PlayerPrefs.Save();
         }
+    }
+
+
+    public void MassUpdateSpellCollection()
+    {
+        foreach (Spell spell in spellBook.spells)
+        {
+            if (spell.isUnlocked)
+            {
+                PlayerPrefs.SetInt("BasicMastery_" + spell.name, 1);
+
+                // Check if the spell has reached flawless mastery
+                if (spellUsage[spell.name] >= spell.flawlessMasteryRequirement)
+                {
+                    PlayerPrefs.SetInt("FlawlessMastery_" + spell.name, 1);
+                }
+
+                // Check if the spell has reached masterful mastery
+                if (spellUsage[spell.name] >= spell.flawlessMasteryRequirement + spell.masterfulMasteryRequirement)
+                {
+                    PlayerPrefs.SetInt("MasterfulMastery_" + spell.name, 1);
+                }
+            }
+        }
+
+        PlayerPrefs.Save();
     }
 
     public int GetSpellMasteryLevel(string spellName)
