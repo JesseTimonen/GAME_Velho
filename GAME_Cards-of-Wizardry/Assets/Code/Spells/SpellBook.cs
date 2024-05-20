@@ -8,8 +8,6 @@ public class SpellBook : ScriptableObject
     public struct Spell
     {
         public string name;
-        public int manaCost;
-        public float usageDelay;
         public int amountInDeck;
         public bool isUnlocked;
         public int minLevel;
@@ -18,18 +16,24 @@ public class SpellBook : ScriptableObject
         public GameObject basicSpellPrefab;
         public GameObject basicSpellPreview;
         public Texture basicCardSprite;
+        public int basicManaCost;
+        public float basicCooldownDelay;
 
         [Header("Flawless")]
         public int flawlessMasteryRequirement;
         public GameObject flawlessSpellPrefab;
         public GameObject flawlessSpellPreview;
         public Texture flawlessCardSprite;
+        public int flawlessManaCost;
+        public float flawlessCooldownDelay;
 
         [Header("Masterful")]
         public int masterfulMasteryRequirement;
         public GameObject masterfulSpellPrefab;
         public GameObject masterfulSpellPreview;
         public Texture masterfulCardSprite;
+        public int masterfulManaCost;
+        public float masterfulCooldownDelay;
     }
 
 
@@ -50,6 +54,7 @@ public class SpellBook : ScriptableObject
         AddSpell("Fire Storm", 1);
 
         // Testing
+        AddSpell("Freeze", 3);
         //AddSpell("Fireball", 1);
         //AddSpell("Fire Storm", 1);
         //AddSpell("Shield", 1);

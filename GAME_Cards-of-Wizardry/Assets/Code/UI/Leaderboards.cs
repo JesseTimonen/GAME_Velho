@@ -1,9 +1,16 @@
 using TMPro;
 using UnityEngine;
 
-
 public class Leaderboards : MonoBehaviour
 {
+    [SerializeField] private InputController inputController;
+    [SerializeField] private GameObject leaderboardPanel;
+    [SerializeField] private AudioClip panelOpenAudio;
+    [SerializeField] private AudioClip panelCloseAudio;
+    [SerializeField] private AudioSource audioSource;
+    private bool isOpen = false;
+
+    [Header("Speedrun timer")]
     [SerializeField] private GameObject speedrunTimer;
     [SerializeField] private TextMeshProUGUI speedrunTimerText;
     private float timeElapsed = 0f;
@@ -13,7 +20,6 @@ public class Leaderboards : MonoBehaviour
     {
         ToggleSpeedrunDisplay();
     }
-
 
     public void ToggleSpeedrunDisplay()
     {
@@ -27,8 +33,50 @@ public class Leaderboards : MonoBehaviour
             timeElapsed += Time.deltaTime;
             UpdateSpeedrunTimerText();
         }
+
+        if (inputController.LeaderboardsPanelPressed && GameManager.Instance.UIPanelOpened == false)
+        {
+            OpenLeaderboardPanel();
+        }
+        else if ((inputController.LeaderboardsPanelPressed || inputController.EscapePressed) && isOpen)
+        {
+            CloseLeaderboardPanel();
+        }
     }
 
+    public void OpenLeaderboardPanel()
+    {
+        GameManager.Instance.HideBasicUI();
+        GameManager.Instance.UIPanelOpened = true;
+        leaderboardPanel.SetActive(true);
+
+        audioSource.clip = panelOpenAudio;
+        audioSource.Play();
+
+        Time.timeScale = 0;
+
+        isOpen = true;
+    }
+
+    public void CloseLeaderboardPanel()
+    {
+        GameManager.Instance.DisplayAdditionalHealthManaBars();
+        GameManager.Instance.ShowBasicUI();
+        Time.timeScale = 1;
+        leaderboardPanel.SetActive(false);
+
+        audioSource.clip = panelCloseAudio;
+        audioSource.Play();
+
+        isOpen = false;
+
+        Invoke("CloseUIPanelReference", 0.1f);
+    }
+
+    private void CloseUIPanelReference()
+    {
+        GameManager.Instance.UIPanelOpened = false;
+    }
 
     private void UpdateSpeedrunTimerText()
     {
@@ -51,7 +99,6 @@ public class Leaderboards : MonoBehaviour
         }
     }
 
-
     public void StartSpeedRunTimer()
     {
         speedrunTimerStarted = true;
@@ -62,7 +109,6 @@ public class Leaderboards : MonoBehaviour
         speedrunTimerStarted = false;
         PostSpeedrunScore();
     }
-
 
     private void PostSpeedrunScore()
     {
@@ -79,5 +125,4 @@ public class Leaderboards : MonoBehaviour
             // TODO
         }
     }
-
 }

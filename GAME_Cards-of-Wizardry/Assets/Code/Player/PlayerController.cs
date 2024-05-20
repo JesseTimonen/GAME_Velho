@@ -246,7 +246,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isFrozen)
         {
-            spriteRenderer.color = Color.blue;
+            spriteRenderer.color = new Color(0f, 125f, 255f, 1f);
         }
         else
         {
@@ -706,7 +706,7 @@ public class PlayerController : MonoBehaviour
 
         isFrozen = true;
         freezeIcon.SetActive(true);
-        spriteRenderer.color = Color.blue;
+        spriteRenderer.color = new Color(0f, 125f, 255f, 1f);
         freezeEndTime = Time.time + duration;
         freezeCoroutine = StartCoroutine(ApplyFreeze(duration));
     }

@@ -1,22 +1,18 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using System.Collections.Generic;
 
-public class FireBall : MonoBehaviour
+
+public class Iceball : MonoBehaviour
 {
     [Header("Base Stats")]
     [SerializeField] private float speed = 10f;
     [SerializeField] private float explosionRadius = 1f;
     [SerializeField] private int minDamage = 80;
     [SerializeField] private int maxDamage = 105;
-    [SerializeField] private float burnDuration = 0f;
+    [SerializeField] private float freezeDuration = 0f;
     [SerializeField] private float maxLifetime = 10f;
-
-    [Header("Fragments")]
-    [SerializeField] private bool spawnFragments = false;
-    [SerializeField] private GameObject fireBallFragment;
-    [SerializeField] private bool isFragment = false;
 
     private AudioSource audioSource;
     private Vector3 direction;
@@ -33,16 +29,14 @@ public class FireBall : MonoBehaviour
         boxCollider = GetComponent<BoxCollider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
 
-        if (!isFragment)
-        {
-            light2D = GetComponent<Light2D>();
-            Vector3 targetPosition = transform.position;
-            transform.position = GameManager.Instance.GetPlayerTransform().position;
-            direction = (targetPosition - transform.position).normalized;
-        }
+        light2D = GetComponent<Light2D>();
+        Vector3 targetPosition = transform.position;
+        transform.position = GameManager.Instance.GetPlayerTransform().position;
+        direction = (targetPosition - transform.position).normalized;
 
-        Invoke(nameof(DestroyGameObject), maxLifetime);
+        Invoke("DestroyGameObject", maxLifetime);
     }
+
 
     void Update()
     {
@@ -52,30 +46,17 @@ public class FireBall : MonoBehaviour
         }
     }
 
+
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (!hasExploded && !isFragment)
+        if (!hasExploded)
         {
             Explode();
             boxCollider.enabled = false;
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D collider)
-    {
-        if (collider.CompareTag("Enemy") && isFragment)
-        {
-            EnemyStats enemy = collider.GetComponent<EnemyStats>();
-            if (damagedEnemies.Contains(enemy)) return;  // Avoid double damage due to double colliders on some enemies
-            damagedEnemies.Add(enemy);
-
-            float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
-            float damageDealt = Random.Range(minDamage, maxDamage);
-            enemy.TakeDamage(Mathf.RoundToInt(playerDamageModifier * damageDealt));
-            enemy.SetOnFire(burnDuration);
-            Destroy(gameObject);
-        }
-    }
 
     private void Explode()
     {
@@ -87,44 +68,26 @@ public class FireBall : MonoBehaviour
             if (hitCollider.CompareTag("Enemy"))
             {
                 EnemyStats enemy = hitCollider.GetComponent<EnemyStats>();
-                if (damagedEnemies.Contains(enemy)) continue;  // Avoid double damage due to double colliders on some enemies
+                if (damagedEnemies.Contains(enemy)) continue;
                 damagedEnemies.Add(enemy);
 
                 float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
                 float damageDealt = Random.Range(minDamage, maxDamage);
                 enemy.TakeDamage(Mathf.RoundToInt(damageDealt * playerDamageModifier));
 
-                if (burnDuration > 0)
+                if (freezeDuration > 0)
                 {
-                    enemy.SetOnFire(burnDuration);
+                    enemy.Freeze(freezeDuration);
                 }
             }
         }
 
-        if (spawnFragments)
-        {
-            SpawnFireFragments();
-        }
 
         hasExploded = true;
         CancelInvoke();
         StartCoroutine(AnimateLightAndDestroy());
     }
 
-    private void SpawnFireFragments()
-    {
-        int numberOfFireballs = 5;
-        float angleStep = 360f / numberOfFireballs;
-        float startAngle = 0f;
-
-        for (int i = 0; i < numberOfFireballs; i++)
-        {
-            float fireballDirectionAngle = startAngle + (angleStep * i);
-            Vector3 fireballDirection = Quaternion.Euler(0, 0, fireballDirectionAngle) * Vector3.up;
-            GameObject smallFireball = Instantiate(fireBallFragment, transform.position, Quaternion.identity);
-            smallFireball.GetComponent<FireBall>().SetDirection(fireballDirection);
-        }
-    }
 
     public void SetDirection(Vector3 newDirection)
     {

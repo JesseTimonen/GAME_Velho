@@ -12,6 +12,11 @@ public class SpellDictionary : MonoBehaviour
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
     [SerializeField] private AudioSource audioSource;
+
+    [Header("Unlocked Textures")]
+    [SerializeField] private Texture basicUnlockedCard;
+    [SerializeField] private Texture flawlessUnlockedCard;
+    [SerializeField] private Texture masterfulUnlockedCard;
     private bool isOpen = false;
 
     private void Update()
@@ -44,15 +49,27 @@ public class SpellDictionary : MonoBehaviour
             {
                 basicCardImage.texture = spell.basicCardSprite;
             }
+            else
+            {
+                basicCardImage.texture = basicUnlockedCard;
+            }
 
             if (PlayerPrefs.GetInt("FlawlessMastery_" + spell.name, 0) == 1)
             {
                 flawlessCardImage.texture = spell.flawlessCardSprite;
             }
+            else
+            {
+                flawlessCardImage.texture = flawlessUnlockedCard;
+            }
 
             if (PlayerPrefs.GetInt("MasterfulMastery_" + spell.name, 0) == 1)
             {
                 masterfulCardImage.texture = spell.masterfulCardSprite;
+            }
+            else
+            {
+                masterfulCardImage.texture = masterfulUnlockedCard;
             }
 
             basicCardImage.enabled = true;

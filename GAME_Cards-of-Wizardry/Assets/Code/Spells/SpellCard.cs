@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System.Collections;
 using TMPro;
 using System.Collections.Generic;
+using static SpellBook;
 
 public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -25,6 +26,10 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     [SerializeField] private AudioClip DrawCardAudio;
     [SerializeField] private AudioClip CancelDrawCardAudio;
     [SerializeField] private AudioClip noManaAudio;
+
+    [Header("Card Stats")]
+    [SerializeField] private TextMeshProUGUI manaCostText;
+    [SerializeField] private TextMeshProUGUI cooldownDelayText;
 
     private GameObject castingAreaIndicatorInstance;
     private List<int> spellWeightedIndices = new List<int>();
@@ -156,6 +161,9 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
         if (!spellCancelled)
         {
+            manaCostText.text = "";
+            cooldownDelayText.text = "";
+
             // Check if the drop was on the trash bin
             if (spellDiscarded || eventData.pointerCurrentRaycast.gameObject == discardPile)
             {
@@ -170,6 +178,22 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         }
         else
         {
+            if (masteryLevelTier == 1)
+            {
+                manaCostText.text = spellBook.spells[currentSpellIndex].basicManaCost.ToString();
+                cooldownDelayText.text = spellBook.spells[currentSpellIndex].basicCooldownDelay.ToString();
+            }
+            else if (masteryLevelTier == 2)
+            {
+                manaCostText.text = spellBook.spells[currentSpellIndex].flawlessManaCost.ToString();
+                cooldownDelayText.text = spellBook.spells[currentSpellIndex].flawlessCooldownDelay.ToString();
+            }
+            else
+            {
+                manaCostText.text = spellBook.spells[currentSpellIndex].masterfulManaCost.ToString();
+                cooldownDelayText.text = spellBook.spells[currentSpellIndex].masterfulCooldownDelay.ToString();
+            }
+
             audioSource.clip = CancelDrawCardAudio;
             audioSource.Play();
         }
@@ -199,14 +223,20 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         if (masteryLevelTier == 1)
         {
             cardImage.texture = spellBook.spells[currentSpellIndex].basicCardSprite;
+            manaCostText.text = spellBook.spells[currentSpellIndex].basicManaCost.ToString();
+            cooldownDelayText.text = spellBook.spells[currentSpellIndex].basicCooldownDelay.ToString();
         }
         else if (masteryLevelTier == 2)
         {
             cardImage.texture = spellBook.spells[currentSpellIndex].flawlessCardSprite;
+            manaCostText.text = spellBook.spells[currentSpellIndex].flawlessManaCost.ToString();
+            cooldownDelayText.text = spellBook.spells[currentSpellIndex].flawlessCooldownDelay.ToString();
         }
         else
         {
             cardImage.texture = spellBook.spells[currentSpellIndex].masterfulCardSprite;
+            manaCostText.text = spellBook.spells[currentSpellIndex].masterfulManaCost.ToString();
+            cooldownDelayText.text = spellBook.spells[currentSpellIndex].masterfulCooldownDelay.ToString();
         }
     }
 
@@ -217,6 +247,8 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         if (isDragging)
         {
             cardImage.enabled = false;
+            manaCostText.text = "";
+            cooldownDelayText.text = "";
 
             if (masteryLevelTier == 1)
             {
@@ -242,6 +274,20 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
         SpellBook.Spell spell = spellBook.spells[currentSpellIndex];
 
+        int manaCost;
+        if (masteryLevelTier == 1)
+        {
+            manaCost = spell.basicManaCost;
+        }
+        else if (masteryLevelTier == 2)
+        {
+            manaCost = spell.flawlessManaCost;
+        }
+        else
+        {
+            manaCost = spell.masterfulManaCost;
+        }
+
         if (playerController.IsFrozen())
         {
             unableToPlayCardText.text = "Frozen";
@@ -249,7 +295,7 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             audioSource.clip = noManaAudio;
             audioSource.Play();
         }
-        else if (!playerController.HasMana(spell.manaCost))
+        else if (!playerController.HasMana(manaCost))
         {
             unableToPlayCardText.text = "Out of mana";
             unableToPlayCardAnimator.SetTrigger("Show");
@@ -258,7 +304,7 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         }
         else
         {
-            playerController.UseMana(spell.manaCost);
+            playerController.UseMana(manaCost);
 
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, Camera.main.nearClipPlane));
             Vector3 spawnPosition = new Vector3(worldPosition.x, worldPosition.y, 0);
@@ -288,7 +334,18 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     {
         if (cooldownDuration == -1f)
         {
-            cooldownDuration = spellBook.spells[currentSpellIndex].usageDelay;
+            if (masteryLevelTier == 1)
+            {
+                cooldownDuration = spellBook.spells[currentSpellIndex].basicCooldownDelay;
+            }
+            else if (masteryLevelTier == 2)
+            {
+                cooldownDuration = spellBook.spells[currentSpellIndex].flawlessCooldownDelay;
+            }
+            else
+            {
+                cooldownDuration = spellBook.spells[currentSpellIndex].masterfulCooldownDelay;
+            }
         }
 
         cooldownTimeRemaining = cooldownDuration;
