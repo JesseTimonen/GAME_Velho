@@ -1,7 +1,6 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Audio;
 using UnityEngine.UI;
 
 public class OptionsMenu : MonoBehaviour
@@ -74,6 +73,14 @@ public class OptionsMenu : MonoBehaviour
         spellVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("SpellVolume", 80));
         UIVolumeSlider.value = Mathf.RoundToInt(PlayerPrefs.GetFloat("UIVolume", 80));
         UpdateVolumeSliders();
+
+        showSpeedrunTimer.isOn = PlayerPrefs.GetInt("ShowSpeedrunTimer", 0) == 1;
+        autoPostLeaderboardToggle.isOn = PlayerPrefs.GetInt("AutoPostScores", 1) == 1;
+        leaderboardUsernameField.text = PlayerPrefs.GetString("Username", "");
+
+        disableScreenShakeToggle.isOn = PlayerPrefs.GetInt("DisableScreenShake", 0) == 1;
+        showHPBarToggle.isOn = PlayerPrefs.GetInt("ShowHPBar", 1) == 1;
+        showManaBarToggle.isOn = PlayerPrefs.GetInt("ShowManaBar", 1) == 1;
 
         Time.timeScale = 0;
 

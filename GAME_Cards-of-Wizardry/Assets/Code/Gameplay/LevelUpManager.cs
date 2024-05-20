@@ -159,6 +159,8 @@ public class LevelUpManager : MonoBehaviour
         }
         else
         {
+            playerController.SetHealthFull();
+            playerController.SetManaFull();
             characterMenu.OpenCharacterPanel();
         }
     }
@@ -310,7 +312,7 @@ public class LevelUpManager : MonoBehaviour
     public void IncreaseMaxHealth()
     {
         playerController.AddMaxHealth(50);
-        playerController.SetHealthFull();
+        playerController.AddHealth(50);
         availableBasePoints--;
         allocatedHealthPoints++;
         UpdateStatUI();
@@ -319,7 +321,7 @@ public class LevelUpManager : MonoBehaviour
     public void DecreaseMaxHealth()
     {
         playerController.AddMaxHealth(-50);
-        playerController.SetHealthFull();
+        playerController.AddHealth(-50);
         availableBasePoints++;
         allocatedHealthPoints--;
         UpdateStatUI();
@@ -328,7 +330,7 @@ public class LevelUpManager : MonoBehaviour
     public void IncreaseMaxMana()
     {
         playerController.AddMaxMana(10);
-        playerController.SetManaFull();
+        playerController.AddMana(10);
         availableBasePoints--;
         allocatedManaPoints++;
         UpdateStatUI();
@@ -337,7 +339,7 @@ public class LevelUpManager : MonoBehaviour
     public void DecreaseMaxMana()
     {
         playerController.AddMaxMana(-10);
-        playerController.SetManaFull();
+        playerController.AddMana(-10);
         availableBasePoints++;
         allocatedManaPoints--;
         UpdateStatUI();

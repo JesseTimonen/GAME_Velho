@@ -70,7 +70,6 @@ public class GameManager : MonoBehaviour
     private void Settings()
     {
         Application.targetFrameRate = 60;
-        Screen.SetResolution(1920, 1080, true);
     }
 
 
@@ -120,8 +119,8 @@ public class GameManager : MonoBehaviour
 
     public void DisplayAdditionalHealthManaBars()
     {
-        bool showHealthBar = PlayerPrefs.GetInt("ShowHPBar", 0) == 1 ? true : false;
-        bool showManaBar = PlayerPrefs.GetInt("ShowManaBar", 0) == 1 ? true : false;
+        bool showHealthBar = PlayerPrefs.GetInt("ShowHPBar", 1) == 1 ? true : false;
+        bool showManaBar = PlayerPrefs.GetInt("ShowManaBar", 1) == 1 ? true : false;
 
         additionalHealthManaBarsCanvas.SetActive(showHealthBar || showManaBar);
         additionalHealthBar.SetActive(showHealthBar);
