@@ -7,7 +7,7 @@ public class OptionsMenu : MonoBehaviour
 {
     [SerializeField] private InputController inputController;
     [SerializeField] private SpellMastery spellMastery;
-    [SerializeField] private SpellBook spellBook;
+    [SerializeField] private Leaderboards leaderboards;
     [SerializeField] private GameObject optionsPanel;
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
@@ -38,6 +38,7 @@ public class OptionsMenu : MonoBehaviour
     [SerializeField] private GameObject leaderboardUsername;
     [SerializeField] private TMP_InputField leaderboardUsernameField;
     [SerializeField] private TextMeshProUGUI invalidUsernameError;
+    [SerializeField] private GameObject speedrunTimer;
 
     [Header("Progression")]
     [SerializeField] private TextMeshProUGUI resetProgressionRequestButton;
@@ -102,6 +103,8 @@ public class OptionsMenu : MonoBehaviour
         GameManager.Instance.ShowBasicUI();
         Time.timeScale = 1;
         optionsPanel.SetActive(false);
+
+        leaderboards.ToggleSpeedrunDisplay();
 
         audioSource.clip = panelCloseAudio;
         audioSource.Play();

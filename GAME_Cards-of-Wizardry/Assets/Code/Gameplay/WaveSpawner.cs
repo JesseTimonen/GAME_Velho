@@ -33,9 +33,9 @@ public class CustomSpawn
 public class WaveSpawner : MonoBehaviour
 {
     [SerializeField] private Animator waveAnnouncement;
+    [SerializeField] private Leaderboards leaderboards;
     [SerializeField] private TextMeshProUGUI waveDurationText;
     [SerializeField] private TextMeshProUGUI waveNumberText;
-    [SerializeField] private TextMeshProUGUI speedrunTimerText;
     [SerializeField] private MusicManager musicManager;
     [SerializeField] private Transform enemyParent;
     [SerializeField] private float spawnRadius = 40f;
@@ -44,8 +44,6 @@ public class WaveSpawner : MonoBehaviour
 
     private int currentWave = 0;
     private float waveTimer = 0f;
-    private float timeElapsed = 0f;
-    private bool speedrunTimerStarted = false;
     private string currentSong = "";
 
     private void Start()
@@ -56,12 +54,6 @@ public class WaveSpawner : MonoBehaviour
     private void Update()
     {
         waveTimer += Time.deltaTime;
-
-        if (speedrunTimerStarted)
-        {
-            timeElapsed += Time.deltaTime;
-            UpdateSpeedrunTimerText();
-        }
 
         UpdateWaveDurationText();
 
@@ -107,9 +99,11 @@ public class WaveSpawner : MonoBehaviour
         waveTimer = 0f;
         UpdateWaveNumberText();
 
+        leaderboards.PostRoundScore(currentWave);
+
         if (currentWave == 1)
         {
-            speedrunTimerStarted = true;
+            leaderboards.StartSpeedRunTimer();
         }
 
         if (currentWave >= 2)
@@ -130,7 +124,7 @@ public class WaveSpawner : MonoBehaviour
         }
         else
         {
-            speedrunTimerStarted = false;
+            leaderboards.EndSpeedRunTimer();
             GameManager.Instance.SetSurvivalModifier(currentWave - waves.Count);
             StartCoroutine(SpawnWave(survivalWave));
             GameManager.Instance.ToggleFear(survivalWave.activateFear);
@@ -198,34 +192,13 @@ public class WaveSpawner : MonoBehaviour
         waveNumberText.text = currentWave.ToString();
     }
 
-    private void UpdateSpeedrunTimerText()
-    {
-        int hours = Mathf.FloorToInt(timeElapsed / 3600);
-        int minutes = Mathf.FloorToInt((timeElapsed % 3600) / 60);
-        int seconds = Mathf.FloorToInt(timeElapsed % 60);
-
-        if (hours > 99)
-        {
-            hours = 599;
-        }
-
-        if (hours > 0)
-        {
-            speedrunTimerText.text = string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
-        }
-        else
-        {
-            speedrunTimerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
-        }
-    }
-
-#if UNITY_EDITOR
+    #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
     }
-#endif
+    #endif
 }
 
 // Helper class to store enemy spawn tasks
