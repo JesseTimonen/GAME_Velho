@@ -3,7 +3,6 @@ using System.Collections;
 using UnityEngine;
 using TMPro;
 
-
 [System.Serializable]
 public class Wave
 {
@@ -15,14 +14,12 @@ public class Wave
     public string playSong = "";
 }
 
-
 [System.Serializable]
 public class EnemyType
 {
     public GameObject enemyPrefab;
     public int count;
 }
-
 
 [System.Serializable]
 public class CustomSpawn
@@ -33,12 +30,12 @@ public class CustomSpawn
     [HideInInspector] public bool hasBeenActivated;
 }
 
-
 public class WaveSpawner : MonoBehaviour
 {
     [SerializeField] private Animator waveAnnouncement;
     [SerializeField] private TextMeshProUGUI waveDurationText;
     [SerializeField] private TextMeshProUGUI waveNumberText;
+    [SerializeField] private TextMeshProUGUI speedrunTimerText;
     [SerializeField] private MusicManager musicManager;
     [SerializeField] private Transform enemyParent;
     [SerializeField] private float spawnRadius = 40f;
@@ -47,6 +44,8 @@ public class WaveSpawner : MonoBehaviour
 
     private int currentWave = 0;
     private float waveTimer = 0f;
+    private float timeElapsed = 0f;
+    private bool speedrunTimerStarted = false;
     private string currentSong = "";
 
     private void Start()
@@ -54,10 +53,16 @@ public class WaveSpawner : MonoBehaviour
         StartNextWave();
     }
 
-
     private void Update()
     {
         waveTimer += Time.deltaTime;
+
+        if (speedrunTimerStarted)
+        {
+            timeElapsed += Time.deltaTime;
+            UpdateSpeedrunTimerText();
+        }
+
         UpdateWaveDurationText();
 
         Wave wave = currentWave <= waves.Count ? waves[currentWave - 1] : survivalWave;
@@ -96,14 +101,17 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
-
     private void StartNextWave()
     {
         currentWave++;
         waveTimer = 0f;
         UpdateWaveNumberText();
 
-        // Skip wave 1 notification
+        if (currentWave == 1)
+        {
+            speedrunTimerStarted = true;
+        }
+
         if (currentWave >= 2)
         {
             waveAnnouncement.SetTrigger("Show");
@@ -122,6 +130,7 @@ public class WaveSpawner : MonoBehaviour
         }
         else
         {
+            speedrunTimerStarted = false;
             GameManager.Instance.SetSurvivalModifier(currentWave - waves.Count);
             StartCoroutine(SpawnWave(survivalWave));
             GameManager.Instance.ToggleFear(survivalWave.activateFear);
@@ -132,7 +141,6 @@ public class WaveSpawner : MonoBehaviour
             }
         }
     }
-
 
     private IEnumerator SpawnWave(Wave wave)
     {
@@ -167,14 +175,11 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
-
-
     private Vector3 GetRandomPointOnCircleEdge(float radius)
     {
         float angle = Random.Range(0f, Mathf.PI * 2);
         return new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0);
     }
-
 
     private void UpdateWaveDurationText()
     {
@@ -188,22 +193,40 @@ public class WaveSpawner : MonoBehaviour
         waveDurationText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
-
     private void UpdateWaveNumberText()
     {
         waveNumberText.text = currentWave.ToString();
     }
 
+    private void UpdateSpeedrunTimerText()
+    {
+        int hours = Mathf.FloorToInt(timeElapsed / 3600);
+        int minutes = Mathf.FloorToInt((timeElapsed % 3600) / 60);
+        int seconds = Mathf.FloorToInt(timeElapsed % 60);
 
-    #if UNITY_EDITOR
+        if (hours > 99)
+        {
+            hours = 599;
+        }
+
+        if (hours > 0)
+        {
+            speedrunTimerText.text = string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
+        }
+        else
+        {
+            speedrunTimerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+        }
+    }
+
+#if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
     }
-    #endif
+#endif
 }
-
 
 // Helper class to store enemy spawn tasks
 public class EnemySpawnTask
@@ -211,7 +234,6 @@ public class EnemySpawnTask
     public GameObject enemyPrefab;
     public float spawnTime;
 }
-
 
 // Extension method for shuffling a list
 public static class ListExtensions
