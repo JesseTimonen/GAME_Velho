@@ -33,7 +33,7 @@ public class MusicManager : MonoBehaviour
 
     private void Start()
     {
-        ModifyVolumeLevels(PlayerPrefs.GetFloat("MusicVolume", 80f), PlayerPrefs.GetFloat("SpellVolume", 80f), PlayerPrefs.GetFloat("UIVolume", 80f));
+        ModifyVolumeLevels(PlayerPrefs.GetFloat("MusicVolume", 0f), PlayerPrefs.GetFloat("SpellVolume", 0f), PlayerPrefs.GetFloat("UIVolume", 0f));
     }
 
 
@@ -126,8 +126,13 @@ public class MusicManager : MonoBehaviour
 
     public void ModifyVolumeLevels(float musicVolume, float spellVolume, float UIVolume)
     {
-        audioMixer.SetFloat("MusicVolume", musicVolume - 80);
-        audioMixer.SetFloat("SpellVolume", spellVolume - 80);
-        audioMixer.SetFloat("UIVolume", UIVolume - 80);
+        // If volume was set to 0% (-60 slider value) mute audio as much as possible (I don't know a way to mute audio mixers, so -80db is best I can do for now)
+        if (musicVolume <= -60) { musicVolume = -160; }
+        if (spellVolume <= -60) { spellVolume = -160; }
+        if (UIVolume <= -60) { UIVolume = -160; }
+
+        audioMixer.SetFloat("MusicVolume", musicVolume / 2f);
+        audioMixer.SetFloat("SpellVolume", spellVolume / 2f);
+        audioMixer.SetFloat("UIVolume", UIVolume / 2f);
     }
 }
