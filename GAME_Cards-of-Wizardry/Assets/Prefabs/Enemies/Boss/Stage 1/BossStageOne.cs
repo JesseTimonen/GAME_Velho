@@ -314,14 +314,17 @@ public class BossStageOne : MonoBehaviour
 
     private IEnumerator Teleport()
     {
-        isTeleporting = true;
-        boxCollider.enabled = false;
-        yield return StartCoroutine(DissolveEffect(false));
-        transform.position = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
-        yield return StartCoroutine(DissolveEffect(true));
-        teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
-        boxCollider.enabled = true;
-        isTeleporting = false;
+        if (!isTeleporting)
+        {
+            isTeleporting = true;
+            boxCollider.enabled = false;
+            yield return StartCoroutine(DissolveEffect(false));
+            transform.position = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
+            yield return StartCoroutine(DissolveEffect(true));
+            teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
+            boxCollider.enabled = true;
+            isTeleporting = false;
+        }
     }
 
     private IEnumerator DissolveEffect(bool isAppearing)
@@ -385,6 +388,8 @@ public class BossStageOne : MonoBehaviour
                 dissolveMaterial.SetFloat("_Fade", dissolveValue);
                 yield return null;
             }
+
+            dissolveMaterial.SetFloat("_Fade", endValue);
         }
     }
 

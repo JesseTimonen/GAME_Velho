@@ -130,7 +130,7 @@ public class Boar : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (isRushing && other.CompareTag("Player"))
+        if (isRushing && other.CompareTag("Player") && !stats.IsFrozen())
         {
             // Damage player
             playerController.TakeDamage(Mathf.RoundToInt(Random.Range(minDamage, maxDamage) * GameManager.Instance.GetSurvivalModifier()));

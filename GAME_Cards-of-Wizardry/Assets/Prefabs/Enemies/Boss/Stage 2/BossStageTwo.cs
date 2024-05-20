@@ -115,14 +115,17 @@ public abstract class BossStageTwo : MonoBehaviour
 
     protected IEnumerator Teleport()
     {
-        isTeleporting = true;
-        boxCollider.enabled = false;
-        yield return StartCoroutine(DissolveEffect(false));
-        transform.position = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
-        yield return StartCoroutine(DissolveEffect(true));
-        teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
-        boxCollider.enabled = true;
-        isTeleporting = false;
+        if (!isTeleporting)
+        {
+            isTeleporting = true;
+            boxCollider.enabled = false;
+            yield return StartCoroutine(DissolveEffect(false));
+            transform.position = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
+            yield return StartCoroutine(DissolveEffect(true));
+            teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
+            boxCollider.enabled = true;
+            isTeleporting = false;
+        }
     }
 
     protected IEnumerator DissolveEffect(bool isAppearing)

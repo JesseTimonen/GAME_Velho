@@ -331,11 +331,26 @@ public class Wizard : MonoBehaviour
     {
         teleportDisabled = true;
         Vector2 direction = (transform.position - player.position).normalized;
-        rb.velocity = direction * moveSpeed;
-        yield return new WaitForSeconds(duration);
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            if (stats.IsFrozen())
+            {
+                rb.velocity = Vector2.zero;
+                teleportDisabled = false;
+                yield break;
+            }
+
+            rb.velocity = direction * moveSpeed;
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
         rb.velocity = Vector2.zero;
         teleportDisabled = false;
     }
+
 
 
     public void DestroyGameobject()

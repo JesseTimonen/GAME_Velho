@@ -156,6 +156,11 @@ public class Bee : MonoBehaviour
 
         for (int i = 0; i < projectilesToShoot; i++)
         {
+            if (stats.IsFrozen())
+            {
+                break;
+            }
+
             animator.SetTrigger("Attack");
             yield return new WaitForSeconds(delay);
         }
@@ -183,6 +188,11 @@ public class Bee : MonoBehaviour
     {
         while ((targetPosition - (Vector2)transform.position).magnitude > 0.1f)
         {
+            if (stats.IsFrozen())
+            {
+                break;
+            }
+
             Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
             rb.velocity = direction * dodgeSpeed;
             yield return null;
