@@ -3,14 +3,17 @@ using UnityEngine;
 
 public class Leaderboards : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] private InputController inputController;
     [SerializeField] private GameObject leaderboardPanel;
+    private bool isOpen = false;
+    
+    [Header("Audio Clips")]
     [SerializeField] private AudioClip panelOpenAudio;
     [SerializeField] private AudioClip panelCloseAudio;
     [SerializeField] private AudioSource audioSource;
-    private bool isOpen = false;
 
-    [Header("Speedrun timer")]
+    [Header("Speedrun Timer")]
     [SerializeField] private GameObject speedrunTimer;
     [SerializeField] private TextMeshProUGUI speedrunTimerText;
     private float timeElapsed = 0f;
@@ -70,7 +73,7 @@ public class Leaderboards : MonoBehaviour
 
         isOpen = false;
 
-        Invoke("CloseUIPanelReference", 0.1f);
+        Invoke(nameof(CloseUIPanelReference), 0.1f);
     }
 
     private void CloseUIPanelReference()
@@ -86,16 +89,15 @@ public class Leaderboards : MonoBehaviour
 
         if (hours > 99)
         {
-            hours = 599;
+            speedrunTimerText.text = $"{hours}:{minutes:00}:{seconds:00}";
         }
-
-        if (hours > 0)
+        else if (hours > 0)
         {
-            speedrunTimerText.text = string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
+            speedrunTimerText.text = $"{hours:00}:{minutes:00}:{seconds:00}";
         }
         else
         {
-            speedrunTimerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+            speedrunTimerText.text = $"{minutes:00}:{seconds:00}";
         }
     }
 
@@ -110,19 +112,32 @@ public class Leaderboards : MonoBehaviour
         PostSpeedrunScore();
     }
 
+    private bool ShouldPostScores()
+    {
+        if (!string.IsNullOrEmpty(PlayerPrefs.GetString("Username", "")))
+        {
+            return false;
+        }
+
+        if (PlayerPrefs.GetInt("AutoPostScores", 1) == 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     private void PostSpeedrunScore()
     {
-        if (PlayerPrefs.GetInt("AutoPostScores", 1) == 1)
-        {
-            // TODO
-        }
+        if (!ShouldPostScores()) return;
+
+        // TODO: Implement speedrun score posting logic using timeElapsed as score
     }
 
     public void PostRoundScore(int waveNumber)
     {
-        if (PlayerPrefs.GetInt("AutoPostScores", 1) == 1)
-        {
-            // TODO
-        }
+        if (!ShouldPostScores()) return;
+
+        // TODO: Implement score posting logic using waveNumber as score
     }
 }
