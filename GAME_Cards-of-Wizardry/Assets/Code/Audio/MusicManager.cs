@@ -118,10 +118,10 @@ public class MusicManager : MonoBehaviour
     public void ModifyVolumeLevels(float musicVolume, float backgroundVolume, float spellVolume, float UIVolume)
     {
         // If volume was set to 0% (-60 slider value) mute audio as much as possible (I don't know a way to mute audio mixers, so -80db is best I can do for now)
-        if (musicVolume <= -60) { musicVolume = -160; }
-        if (backgroundVolume <= -60) { backgroundVolume = -160; }
-        if (spellVolume <= -60) { spellVolume = -160; }
-        if (UIVolume <= -60) { UIVolume = -160; }
+        if (musicVolume <= -80) { musicVolume = -160; }
+        if (backgroundVolume <= -80) { backgroundVolume = -160; }
+        if (spellVolume <= -80) { spellVolume = -160; }
+        if (UIVolume <= -80) { UIVolume = -160; }
 
         audioMixer.SetFloat("MusicVolume", musicVolume / 2f);
         audioMixer.SetFloat("BackgroundVolume", backgroundVolume / 2f);

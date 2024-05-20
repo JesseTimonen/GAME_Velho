@@ -160,16 +160,16 @@ public class OptionsMenu : MonoBehaviour
 
     public void UpdateVolumeSliders()
     {
-        float volume = musicVolumeSlider.value + 60f;
+        float volume = musicVolumeSlider.value + 80;
         musicVolumeText.text = volume.ToString() + "%";
 
-        volume = backgroundVolumeSlider.value + 60f;
+        volume = backgroundVolumeSlider.value + 80;
         backgroundVolumeText.text = volume.ToString() + "%";
 
-        volume = spellVolumeSlider.value + 60f;
+        volume = spellVolumeSlider.value + 80;
         spellVolumeText.text = volume.ToString() + "%";
 
-        volume = UIVolumeSlider.value + 60f;
+        volume = UIVolumeSlider.value + 80;
         UIVolumeText.text = volume.ToString() + "%";
 
         musicManager.ModifyVolumeLevels(musicVolumeSlider.value, backgroundVolumeSlider.value, spellVolumeSlider.value, UIVolumeSlider.value);
