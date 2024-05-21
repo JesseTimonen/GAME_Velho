@@ -4,7 +4,6 @@ using UnityEngine.UI;
 using System.Collections;
 using TMPro;
 using System.Collections.Generic;
-using static SpellBook;
 
 public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -206,6 +205,7 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     private void PickRandomSpell()
     {
         spellWeightedIndices.Clear();
+
         for (int i = 0; i < spellBook.spells.Length; i++)
         {
             if (spellBook.spells[i].isUnlocked)
@@ -288,21 +288,7 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             manaCost = spell.masterfulManaCost;
         }
 
-        if (playerController.IsFrozen())
-        {
-            unableToPlayCardText.text = "Frozen";
-            unableToPlayCardAnimator.SetTrigger("Show");
-            audioSource.clip = noManaAudio;
-            audioSource.Play();
-        }
-        else if (!playerController.HasMana(manaCost))
-        {
-            unableToPlayCardText.text = "Out of mana";
-            unableToPlayCardAnimator.SetTrigger("Show");
-            audioSource.clip = noManaAudio;
-            audioSource.Play();
-        }
-        else
+        if (!playerController.IsFrozen() && playerController.HasMana(manaCost))
         {
             playerController.UseMana(manaCost);
 
@@ -327,6 +313,39 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             castingAreaIndicatorInstance = null;
             spellMastery.IncreaseSpellUsage(spell.name);
             StartRechargeSpell();
+        }
+        else
+        {
+            if (masteryLevelTier == 1)
+            {
+                manaCostText.text = spellBook.spells[currentSpellIndex].basicManaCost.ToString();
+                cooldownDelayText.text = spellBook.spells[currentSpellIndex].basicCooldownDelay.ToString();
+            }
+            else if (masteryLevelTier == 2)
+            {
+                manaCostText.text = spellBook.spells[currentSpellIndex].flawlessManaCost.ToString();
+                cooldownDelayText.text = spellBook.spells[currentSpellIndex].flawlessCooldownDelay.ToString();
+            }
+            else
+            {
+                manaCostText.text = spellBook.spells[currentSpellIndex].masterfulManaCost.ToString();
+                cooldownDelayText.text = spellBook.spells[currentSpellIndex].masterfulCooldownDelay.ToString();
+            }
+
+            if (playerController.IsFrozen())
+            {
+                unableToPlayCardText.text = "Frozen";
+                unableToPlayCardAnimator.SetTrigger("Show");
+                audioSource.clip = noManaAudio;
+                audioSource.Play();
+            }
+            else if (!playerController.HasMana(manaCost))
+            {
+                unableToPlayCardText.text = "Out of mana";
+                unableToPlayCardAnimator.SetTrigger("Show");
+                audioSource.clip = noManaAudio;
+                audioSource.Play();
+            }
         }
     }
 
