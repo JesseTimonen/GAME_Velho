@@ -18,6 +18,7 @@ public class FireBall : MonoBehaviour
     [SerializeField] private GameObject fireBallFragment;
     [SerializeField] private bool isFragment = false;
 
+    private bool customDirectionSet = false;
     private AudioSource audioSource;
     private Vector3 direction;
     private Light2D light2D;
@@ -27,7 +28,7 @@ public class FireBall : MonoBehaviour
     private HashSet<EnemyStats> damagedEnemies = new HashSet<EnemyStats>();
 
 
-    void Start()
+    private void Start()
     {
         audioSource = GetComponent<AudioSource>();
         boxCollider = GetComponent<BoxCollider2D>();
@@ -38,13 +39,17 @@ public class FireBall : MonoBehaviour
             light2D = GetComponent<Light2D>();
             Vector3 targetPosition = transform.position;
             transform.position = GameManager.Instance.GetPlayerTransform().position;
-            direction = (targetPosition - transform.position).normalized;
+
+            if (!customDirectionSet)
+            {
+                direction = (targetPosition - transform.position).normalized;
+            }
         }
 
         Invoke(nameof(DestroyGameObject), maxLifetime);
     }
 
-    void Update()
+    private void Update()
     {
         if (!hasExploded)
         {
@@ -128,6 +133,7 @@ public class FireBall : MonoBehaviour
 
     public void SetDirection(Vector3 newDirection)
     {
+        customDirectionSet = true;
         direction = newDirection;
     }
 

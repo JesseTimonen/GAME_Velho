@@ -290,11 +290,26 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
         if (!playerController.IsFrozen() && playerController.HasMana(manaCost))
         {
-            playerController.UseMana(manaCost);
-
+            // Convert screen position to world position
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, Camera.main.nearClipPlane));
             Vector3 spawnPosition = new Vector3(worldPosition.x, worldPosition.y, 0);
 
+            // Check if the spell is "Teleport" and if the position overlaps with MapBorders
+            if (spell.name == "Teleport")
+            {
+                Collider2D[] hitColliders = Physics2D.OverlapPointAll(spawnPosition);
+                foreach (var hitCollider in hitColliders)
+                {
+                    if (hitCollider.gameObject.layer == LayerMask.NameToLayer("MapBorders"))
+                    {
+                        audioSource.clip = noManaAudio;
+                        audioSource.Play();
+                        return;
+                    }
+                }
+            }
+
+            playerController.UseMana(manaCost);
             playerAnimator.SetTrigger("Attack");
 
             if (masteryLevelTier == 1)
@@ -348,6 +363,7 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             }
         }
     }
+
 
     public void StartRechargeSpell(float cooldownDuration = -1f)
     {

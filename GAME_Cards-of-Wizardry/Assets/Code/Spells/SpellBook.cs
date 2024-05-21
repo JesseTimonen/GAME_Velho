@@ -50,15 +50,18 @@ public class SpellBook : ScriptableObject
             spells[i] = spell;
         }
 
-        AddSpell("Fireball", 3);
-        AddSpell("Fire Storm", 1);
+        // AddSpell("Fireball", 3);
+        // AddSpell("Fire Storm", 1);
 
         // Testing
-        // AddSpell("Freeze", 3);
-        //AddSpell("Fireball", 1);
-        //AddSpell("Fire Storm", 1);
-        //AddSpell("Shield", 1);
-        //AddSpell("Heal", 1);
+        AddSpell("Fireball", 1);
+        AddSpell("Fire Storm", 1);
+        AddSpell("Shield", 1);
+        AddSpell("Heal", 1);
+        AddSpell("Meteorite", 1);
+        AddSpell("Fire Burst", 1);
+        AddSpell("Freeze", 1);
+        AddSpell("Teleport", 1);
     }
 
 
