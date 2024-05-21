@@ -56,6 +56,11 @@ public class FireStorm : MonoBehaviour
         }
 
         float damageModifier = 1 + Time.time - startTime;
+        if (damageModifier > duration - 1f)
+        {
+            return;
+        }
+
         PlayerController playerController = GameManager.Instance.GetPlayerController();
         float playerDamageModifier = playerController.GetDamageBoost();
         float baseDamage = Random.Range(minDamage, maxDamage);
