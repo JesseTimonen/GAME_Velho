@@ -64,7 +64,6 @@ public class LevelUpManager : MonoBehaviour
     private int allocatedHealthPoints = 0;
     private int allocatedManaPoints = 0;
 
-
     private void Start()
     {
         UpdateEXPSlider();
@@ -182,6 +181,12 @@ public class LevelUpManager : MonoBehaviour
                 cardImages[i].GetComponent<Button>().onClick.RemoveAllListeners();
                 int index = i;
                 cardImages[i].GetComponent<Button>().onClick.AddListener(() => SelectSpell(eligibleSpells[index], index));
+
+                TextMeshProUGUI manaCostText = cardImages[i].transform.Find("Mana Cost").GetComponent<TextMeshProUGUI>();
+                TextMeshProUGUI cooldownText = cardImages[i].transform.Find("Delay Cooldown").GetComponent<TextMeshProUGUI>();
+                manaCostText.text = eligibleSpells[i].basicManaCost.ToString();
+                cooldownText.text = eligibleSpells[i].basicCooldownDelay.ToString();
+
                 StartCoroutine(FadeInCard(cardImages[i]));
             }
             else
@@ -190,6 +195,7 @@ public class LevelUpManager : MonoBehaviour
             }
         }
     }
+
 
     private void SelectSpell(SpellBook.Spell spell, int selectedIndex)
     {
