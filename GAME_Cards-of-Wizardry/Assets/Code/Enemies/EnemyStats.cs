@@ -128,7 +128,11 @@ public class EnemyStats : MonoBehaviour
 
     public void AddShield(int shieldAmount, float duration)
     {
-        shieldHealth += shieldAmount;
+        if (shieldHealth < shieldAmount)
+        {
+            shieldHealth = shieldAmount;
+        }
+
         if (!shieldParticles.isPlaying)
         {
             shieldParticles.Play();
