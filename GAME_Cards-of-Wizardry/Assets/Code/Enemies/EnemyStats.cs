@@ -133,6 +133,8 @@ public class EnemyStats : MonoBehaviour
             flameParticles.Play();
         }
 
+        duration = duration / GameManager.Instance.GetSurvivalModifier();
+
         if (burnCoroutine != null)
         {
             burnEndTime = Mathf.Max(burnEndTime, Time.time + duration);
@@ -233,9 +235,11 @@ public class EnemyStats : MonoBehaviour
             StopCoroutine(freezeCoroutine);
         }
 
+
+
         spriteRenderer.color = Color.blue;
         isFrozen = true;
-        freezeCoroutine = StartCoroutine(UnfreezeAfterTime(duration));
+        freezeCoroutine = StartCoroutine(UnfreezeAfterTime(duration / GameManager.Instance.GetSurvivalModifier()));
     }
 
 

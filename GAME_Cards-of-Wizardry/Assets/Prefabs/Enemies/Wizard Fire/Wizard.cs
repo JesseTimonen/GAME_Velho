@@ -277,7 +277,7 @@ public class Wizard : MonoBehaviour
 
             if (enemyStats != null)
             {
-                enemyStats.AddHealth(healBurstAmount);
+                enemyStats.AddHealth(Mathf.RoundToInt(healBurstAmount * GameManager.Instance.GetSurvivalModifier()));
             }
         }
 
