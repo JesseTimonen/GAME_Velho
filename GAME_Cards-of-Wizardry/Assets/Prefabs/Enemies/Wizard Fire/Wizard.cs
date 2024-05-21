@@ -94,6 +94,7 @@ public class Wizard : MonoBehaviour
 
                 if (teleportTimer <= 0 && !teleportDisabled && distanceToPlayer <= furthestRadius)
                 {
+                    teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
                     StartCoroutine(Teleport());
                 }
             }
@@ -165,7 +166,6 @@ public class Wizard : MonoBehaviour
             yield return StartCoroutine(DissolveEffect(false));
             transform.position = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
             yield return StartCoroutine(DissolveEffect(true));
-            teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
             boxCollider.enabled = true;
             isTeleporting = false;
         }
@@ -176,7 +176,7 @@ public class Wizard : MonoBehaviour
     {
         float dissolveValue = isAppearing ? 0f : 1f;
         float endValue = isAppearing ? 1f : 0f;
-        float step = Time.deltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
+        float step = Time.unscaledDeltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
 
         while ((isAppearing && dissolveValue < endValue) || (!isAppearing && dissolveValue > endValue))
         {

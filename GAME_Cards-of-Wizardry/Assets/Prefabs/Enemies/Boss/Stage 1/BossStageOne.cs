@@ -7,10 +7,10 @@ public class BossStageOne : MonoBehaviour
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private float closestRadius = 3f;
     [SerializeField] private float furthestRadius = 8f;
+    [SerializeField] private float teleportRadius = 8f;
     [SerializeField] private float teleportCooldownMin = 3;
     [SerializeField] private float teleportCooldownMax = 5;
     private float teleportTimer;
-    private float teleportRadius = 8f;
     private bool isTeleporting = false;
 
     [Header("Fireball Attack")]
@@ -153,7 +153,7 @@ public class BossStageOne : MonoBehaviour
 
     private void CheckEnrageMode()
     {
-        if (!isEnraged && stats.health <= stats.maxHealth * enrageThreshold)
+        if (!isEnraged && !isTeleporting && stats.health <= stats.maxHealth * enrageThreshold)
         {
             isEnraged = true;
 
@@ -236,6 +236,7 @@ public class BossStageOne : MonoBehaviour
         teleportTimer -= Time.deltaTime;
         if (teleportTimer <= 0 && !isTeleporting)
         {
+            teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
             StartCoroutine(Teleport());
         }
     }
@@ -321,7 +322,6 @@ public class BossStageOne : MonoBehaviour
             yield return StartCoroutine(DissolveEffect(false));
             transform.position = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
             yield return StartCoroutine(DissolveEffect(true));
-            teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
             boxCollider.enabled = true;
             isTeleporting = false;
         }
@@ -339,7 +339,7 @@ public class BossStageOne : MonoBehaviour
                 float outlineThickness = 0.4f;
                 while (outlineThickness > 0f)
                 {
-                    outlineThickness -= Time.deltaTime * materialSwapSpeed;
+                    outlineThickness -= Time.unscaledDeltaTime * materialSwapSpeed;
                     outlineMaterial.SetFloat("_Thickness", Mathf.Clamp(outlineThickness, 0f, 0.4f));
                     yield return null;
                 }
@@ -351,7 +351,7 @@ public class BossStageOne : MonoBehaviour
             // Step 3 and 5: Dissolve _Fade from 1 to 0 or 0 to 1
             float dissolveValue = isAppearing ? 0f : 1f;
             float endValue = isAppearing ? 1f : 0f;
-            float step = Time.deltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
+            float step = Time.unscaledDeltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
 
             while ((isAppearing && dissolveValue < endValue) || (!isAppearing && dissolveValue > endValue))
             {
@@ -369,7 +369,7 @@ public class BossStageOne : MonoBehaviour
                 float outlineThickness = 0f;
                 while (outlineThickness < 0.4f)
                 {
-                    outlineThickness += Time.deltaTime * materialSwapSpeed;
+                    outlineThickness += Time.unscaledDeltaTime * materialSwapSpeed;
                     outlineMaterial.SetFloat("_Thickness", Mathf.Clamp(outlineThickness, 0f, 0.4f));
                     yield return null;
                 }
@@ -380,7 +380,7 @@ public class BossStageOne : MonoBehaviour
             // Non-enraged dissolve effect
             float dissolveValue = isAppearing ? 0f : 1f;
             float endValue = isAppearing ? 1f : 0f;
-            float step = Time.deltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
+            float step = Time.unscaledDeltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
 
             while ((isAppearing && dissolveValue < endValue) || (!isAppearing && dissolveValue > endValue))
             {
@@ -392,6 +392,7 @@ public class BossStageOne : MonoBehaviour
             dissolveMaterial.SetFloat("_Fade", endValue);
         }
     }
+
 
     private void FlipGameObject()
     {

@@ -7,9 +7,9 @@ public abstract class BossStageTwo : MonoBehaviour
     [SerializeField] protected float moveSpeed = 2f;
     [SerializeField] protected float closestRadius = 3f;
     [SerializeField] protected float furthestRadius = 8f;
+    [SerializeField] protected float teleportRadius = 8f;
     [SerializeField] protected float teleportCooldownMin = 3f;
     [SerializeField] protected float teleportCooldownMax = 5f;
-    [SerializeField] protected float teleportRadius = 8f;
     protected float teleportTimer;
     protected bool isTeleporting = false;
 
@@ -109,6 +109,7 @@ public abstract class BossStageTwo : MonoBehaviour
         teleportTimer -= Time.deltaTime;
         if (teleportTimer <= 0 && !isTeleporting)
         {
+            teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
             StartCoroutine(Teleport());
         }
     }
@@ -122,7 +123,6 @@ public abstract class BossStageTwo : MonoBehaviour
             yield return StartCoroutine(DissolveEffect(false));
             transform.position = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
             yield return StartCoroutine(DissolveEffect(true));
-            teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
             boxCollider.enabled = true;
             isTeleporting = false;
         }
@@ -138,7 +138,7 @@ public abstract class BossStageTwo : MonoBehaviour
             float outlineThickness = 0.4f;
             while (outlineThickness > 0f)
             {
-                outlineThickness -= Time.deltaTime * materialSwapSpeed;
+                outlineThickness -= Time.unscaledDeltaTime * materialSwapSpeed;
                 outlineMaterial.SetFloat("_Thickness", Mathf.Clamp(outlineThickness, 0f, 0.4f));
                 yield return null;
             }
@@ -150,7 +150,7 @@ public abstract class BossStageTwo : MonoBehaviour
             float dissolveValue = 1f;
             while (dissolveValue > 0f)
             {
-                dissolveValue -= Time.deltaTime * dissolveSpeed;
+                dissolveValue -= Time.unscaledDeltaTime * dissolveSpeed;
                 dissolveMaterial.SetFloat("_Fade", dissolveValue);
                 yield return null;
             }
@@ -161,7 +161,7 @@ public abstract class BossStageTwo : MonoBehaviour
             float dissolveValue = 0f;
             while (dissolveValue < 1f)
             {
-                dissolveValue += Time.deltaTime * dissolveSpeed;
+                dissolveValue += Time.unscaledDeltaTime * dissolveSpeed;
                 dissolveMaterial.SetFloat("_Fade", dissolveValue);
                 yield return null;
             }
@@ -173,7 +173,7 @@ public abstract class BossStageTwo : MonoBehaviour
             float outlineThickness = 0f;
             while (outlineThickness < 0.4f)
             {
-                outlineThickness += Time.deltaTime * materialSwapSpeed;
+                outlineThickness += Time.unscaledDeltaTime * materialSwapSpeed;
                 outlineMaterial.SetFloat("_Thickness", Mathf.Clamp(outlineThickness, 0f, 0.4f));
                 yield return null;
             }
