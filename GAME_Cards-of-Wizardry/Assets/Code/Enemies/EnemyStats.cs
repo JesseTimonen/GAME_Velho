@@ -2,11 +2,11 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-
 public class EnemyStats : MonoBehaviour
 {
     public int maxHealth = 100;
     public int health = 100;
+    public int shieldHealth = 0;
     public int experienceGain = 50;
     [SerializeField] private bool fireImmunity = false;
     [SerializeField] private bool freezeImmunity = false;
@@ -20,22 +20,19 @@ public class EnemyStats : MonoBehaviour
     private LevelUpManager levelUpManager;
 
     private Coroutine burnCoroutine;
-    private Coroutine damageReductionCoroutine;
     private Coroutine reflectCoroutine;
     private Coroutine freezeCoroutine;
+    private Coroutine shieldCoroutine;
     private float burnEndTime;
     private bool isDead = false;
     private bool isFrozen = false;
-    private float damageReductionStrength = 0f;
     private float reflectIntensity = 0f;
-
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
-
 
     private void Start()
     {
@@ -45,28 +42,39 @@ public class EnemyStats : MonoBehaviour
         health = maxHealth;
     }
 
-
     public void TakeDamage(int amount)
     {
         if (isDead) return;
 
-        int reducedDamage = Mathf.CeilToInt(amount * (1 - damageReductionStrength));
-        health -= reducedDamage;
+        if (shieldHealth > 0)
+        {
+            shieldHealth -= amount;
+            if (shieldHealth <= 0)
+            {
+                // Some damage went through the shield
+                health -= shieldHealth;
+                ReflectDamage(Mathf.RoundToInt(shieldHealth * -1f));
+
+                shieldParticles.Stop();
+                shieldHealth = 0;
+            }
+        }
+        else
+        {
+            health -= amount;
+            ReflectDamage(amount);
+        }
 
         UpdateHealthBar();
+
+        spriteRenderer.color = Color.red;
+        Invoke(nameof(ResetSpriteColor), 0.33f);
 
         if (health <= 0 && !isDead)
         {
             Die();
         }
-        else
-        {
-            spriteRenderer.color = Color.red;
-            Invoke(nameof(ResetSpriteColor), 0.33f);
-            ReflectDamage(reducedDamage);
-        }
     }
-
 
     public void AddHealth(int amount)
     {
@@ -76,7 +84,6 @@ public class EnemyStats : MonoBehaviour
         spriteRenderer.color = Color.green;
         Invoke(nameof(ResetSpriteColor), 0.33f);
     }
-
 
     private void UpdateHealthBar()
     {
@@ -88,7 +95,6 @@ public class EnemyStats : MonoBehaviour
         healthBarSlider.maxValue = Mathf.Ceil(maxHealth);
         healthBarSlider.value = Mathf.Ceil(health);
     }
-
 
     private void ResetSpriteColor()
     {
@@ -102,7 +108,6 @@ public class EnemyStats : MonoBehaviour
         }
     }
 
-
     private void Die()
     {
         isDead = true;
@@ -111,18 +116,39 @@ public class EnemyStats : MonoBehaviour
         animator.SetTrigger("Die");
     }
 
-
     public bool IsAlive()
     {
         return !isDead;
     }
-
 
     public bool IsFrozen()
     {
         return isFrozen;
     }
 
+    public void AddShield(int shieldAmount, float duration)
+    {
+        shieldHealth += shieldAmount;
+        if (!shieldParticles.isPlaying)
+        {
+            shieldParticles.Play();
+        }
+
+        if (shieldCoroutine != null)
+        {
+            StopCoroutine(shieldCoroutine);
+        }
+
+        shieldCoroutine = StartCoroutine(RemoveShieldAfterTime(duration));
+    }
+
+    private IEnumerator RemoveShieldAfterTime(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        shieldHealth = 0;
+        shieldParticles.Stop();
+        shieldCoroutine = null;
+    }
 
     public void SetOnFire(float duration)
     {
@@ -146,7 +172,6 @@ public class EnemyStats : MonoBehaviour
         }
     }
 
-
     private IEnumerator ApplyBurn()
     {
         while (Time.time < burnEndTime)
@@ -158,38 +183,6 @@ public class EnemyStats : MonoBehaviour
         burnCoroutine = null;
         flameParticles.Stop();
     }
-
-
-    public void AddDamageReduction(float reductionStrength, float duration)
-    {
-        if (!shieldParticles.isPlaying)
-        {
-            shieldParticles.Play();
-        }
-
-        if (damageReductionCoroutine != null)
-        {
-            if (reductionStrength < damageReductionStrength)
-            {
-                return;
-            }
-
-            StopCoroutine(damageReductionCoroutine);
-        }
-
-        damageReductionStrength = reductionStrength;
-        damageReductionCoroutine = StartCoroutine(RemoveDamageReductionAfterTime(duration));
-    }
-
-
-    private IEnumerator RemoveDamageReductionAfterTime(float duration)
-    {
-        yield return new WaitForSeconds(duration);
-        damageReductionStrength = 0f;
-        damageReductionCoroutine = null;
-        shieldParticles.Stop();
-    }
-
 
     public void AddReflect(float intensity, float duration)
     {
@@ -225,7 +218,6 @@ public class EnemyStats : MonoBehaviour
         }
     }
 
-
     public void Freeze(float duration)
     {
         if (freezeImmunity) return;
@@ -235,13 +227,10 @@ public class EnemyStats : MonoBehaviour
             StopCoroutine(freezeCoroutine);
         }
 
-
-
         spriteRenderer.color = Color.blue;
         isFrozen = true;
         freezeCoroutine = StartCoroutine(UnfreezeAfterTime(duration / GameManager.Instance.GetSurvivalModifier()));
     }
-
 
     private IEnumerator UnfreezeAfterTime(float duration)
     {

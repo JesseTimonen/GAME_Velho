@@ -42,7 +42,7 @@ public class WaveSpawner : MonoBehaviour
     [SerializeField] private List<Wave> waves;
     [SerializeField] private Wave survivalWave;
 
-    private int currentWave = 0;
+    [SerializeField] private int currentWave = 0;
     private float waveTimer = 0f;
     private string currentSong = "";
 

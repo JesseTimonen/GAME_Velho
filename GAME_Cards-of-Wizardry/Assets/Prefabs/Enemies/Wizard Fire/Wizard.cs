@@ -57,7 +57,8 @@ public class Wizard : MonoBehaviour
     public GameObject iceballPrefab;
     public float shieldRadius = 10f;
     public float shieldDuration = 8f;
-    public float shieldDamageReduction = 1f;
+    public int shieldAmount = 200;
+    public int survivalShieldAmount = 500;
     private float iceballTimer;
 
 
@@ -294,7 +295,7 @@ public class Wizard : MonoBehaviour
 
             if (enemyStats != null)
             {
-                enemyStats.AddDamageReduction(shieldDamageReduction, shieldDuration);
+                enemyStats.AddShield(Mathf.RoundToInt(shieldAmount * GameManager.Instance.GetSurvivalModifier()), shieldDuration);
             }
         }
     }
@@ -312,7 +313,7 @@ public class Wizard : MonoBehaviour
                 StartCoroutine(RunAwayFromPlayer(healingSurvivalRunDuration));
                 break;
             case WizardType.Shielding:
-                stats.AddDamageReduction(1f, 10f);
+                stats.AddShield(Mathf.RoundToInt(survivalShieldAmount * GameManager.Instance.GetSurvivalModifier()), shieldDuration);
                 break;
         }
     }
@@ -425,7 +426,8 @@ public class WizardEditor : Editor
                 script.iceballPrefab = (GameObject)EditorGUILayout.ObjectField("Iceball Prefab", script.iceballPrefab, typeof(GameObject), false);
                 script.shieldRadius = EditorGUILayout.FloatField("Shield Radius", script.shieldRadius);
                 script.shieldDuration = EditorGUILayout.FloatField("Shield Duration", script.shieldDuration);
-                script.shieldDamageReduction = EditorGUILayout.Slider("Shield Damage Reduction", script.shieldDamageReduction, 0f, 1f);
+                script.shieldAmount = EditorGUILayout.IntField("AoE Shield Amount", script.shieldAmount);
+                script.survivalShieldAmount = EditorGUILayout.IntField("survival Shield Amount", script.survivalShieldAmount);
                 break;
         }
 

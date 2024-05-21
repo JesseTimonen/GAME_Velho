@@ -12,7 +12,7 @@ public class Boss_O : BossStageTwo
     [SerializeField] private float shieldRadius = 10f;
     [SerializeField] private float shieldCooldown = 15f;
     [SerializeField] private float shieldDuration = 8f;
-    [SerializeField][Range(0f, 1f)] private float shieldDamageReduction = 0.5f;
+    [SerializeField] private int shieldAmount = 300;
     private float shieldTimer;
 
 
@@ -58,7 +58,7 @@ public class Boss_O : BossStageTwo
         {
             if (hitCollider.GetComponent<EnemyStats>() != null)
             {
-                hitCollider.GetComponent<EnemyStats>().AddDamageReduction(shieldDamageReduction, shieldDuration);
+                hitCollider.GetComponent<EnemyStats>().AddShield(Mathf.RoundToInt(shieldAmount * GameManager.Instance.GetSurvivalModifier()), shieldDuration);
             }
         }
     }

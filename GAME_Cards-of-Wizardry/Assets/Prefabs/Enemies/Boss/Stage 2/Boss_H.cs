@@ -73,7 +73,7 @@ public class Boss_H : BossStageTwo
             EnemyStats enemyStats = hitCollider.GetComponent<EnemyStats>();
             if (enemyStats != null)
             {
-                enemyStats.AddHealth(healBurstAmount);
+                enemyStats.AddHealth(Mathf.RoundToInt(healBurstAmount * GameManager.Instance.GetSurvivalModifier()));
             }
         }
 

@@ -49,11 +49,11 @@ public class BossStageOne : MonoBehaviour
     [SerializeField] private float reflectIntensity = 0.5f;
     private float reflectTimer;
 
-    [Header("Damage Reduction")]
-    [SerializeField] private float damageReductionCooldown = 15f;
-    [SerializeField] private float damageReductionDuration = 5f;
-    [SerializeField] private float damageReductionStrength = 0.5f;
-    private float damageReductionTimer;
+    [Header("Shield")]
+    [SerializeField] private float shieldCooldown = 15f;
+    [SerializeField] private float shieldDuration = 8f;
+    [SerializeField] private int shieldAmount = 500;
+    private float shieldTimer;
 
     [Header("Enrage")]
     [Range(0f, 1f)] public float enrageThreshold = 0.4f;
@@ -100,7 +100,7 @@ public class BossStageOne : MonoBehaviour
         fireballTimer = fireballCooldown;
         shotgunTimer = shotgunCooldown;
         reflectTimer = reflectCooldown;
-        damageReductionTimer = damageReductionCooldown;
+        shieldTimer = shieldCooldown;
         meteorShowerTimer = meteorShowerCooldown;
         healTimer = healCooldown;
         teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
@@ -183,7 +183,7 @@ public class BossStageOne : MonoBehaviour
         fireballTimer -= Time.deltaTime;
         shotgunTimer -= Time.deltaTime;
         reflectTimer -= Time.deltaTime;
-        damageReductionTimer -= Time.deltaTime;
+        shieldTimer -= Time.deltaTime;
         healTimer -= Time.deltaTime;
         meteorShowerTimer -= Time.deltaTime;
 
@@ -212,10 +212,10 @@ public class BossStageOne : MonoBehaviour
             reflectTimer = reflectCooldown;
         }
 
-        if (damageReductionTimer <= 0)
+        if (shieldTimer <= 0)
         {
-            ActivateDamageReductionShield();
-            damageReductionTimer = damageReductionCooldown;
+            ActivateShield();
+            shieldTimer = shieldCooldown;
         }
 
         if (healTimer <= 0)
@@ -301,14 +301,14 @@ public class BossStageOne : MonoBehaviour
         stats.AddReflect(reflectIntensity, reflectDuration);
     }
 
-    private void ActivateDamageReductionShield()
+    private void ActivateShield()
     {
-        stats.AddDamageReduction(damageReductionStrength, damageReductionDuration);
+        stats.AddShield(Mathf.RoundToInt(shieldAmount * GameManager.Instance.GetSurvivalModifier()), shieldDuration);
     }
 
     private void HealBoss()
     {
-        stats.AddHealth(healingAmount);
+        stats.AddHealth(Mathf.RoundToInt(healingAmount * GameManager.Instance.GetSurvivalModifier()));
         healingBurstParticles.Play();
     }
 
