@@ -346,22 +346,27 @@ public class BossStageOne : MonoBehaviour
 
                 // Step 2: Change material to dissolve
                 renderer.material = dissolveMaterial;
+
+                // Step 3: Dissolve _Fade goes from 1 to 0
+                float dissolveValue = 1f;
+                while (dissolveValue > 0f)
+                {
+                    dissolveValue -= Time.unscaledDeltaTime * dissolveSpeed;
+                    dissolveMaterial.SetFloat("_Fade", dissolveValue);
+                    yield return null;
+                }
             }
-
-            // Step 3 and 5: Dissolve _Fade from 1 to 0 or 0 to 1
-            float dissolveValue = isAppearing ? 0f : 1f;
-            float endValue = isAppearing ? 1f : 0f;
-            float step = Time.unscaledDeltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
-
-            while ((isAppearing && dissolveValue < endValue) || (!isAppearing && dissolveValue > endValue))
+            else
             {
-                dissolveValue += step;
-                dissolveMaterial.SetFloat("_Fade", dissolveValue);
-                yield return null;
-            }
+                // Step 5: Dissolve _Fade goes from 0 to 1
+                float dissolveValue = 0f;
+                while (dissolveValue < 1f)
+                {
+                    dissolveValue += Time.unscaledDeltaTime * dissolveSpeed;
+                    dissolveMaterial.SetFloat("_Fade", dissolveValue);
+                    yield return null;
+                }
 
-            if (isAppearing)
-            {
                 // Step 6: Change material to outline
                 renderer.material = outlineMaterial;
 
