@@ -118,7 +118,7 @@ public class PlayerController : MonoBehaviour
 
         if (isFrozen) return;
 
-        if (currentMana < maxMana)
+        if (currentMana < GetMaxMana())
         {
             RechargeMana();
         }
@@ -148,22 +148,22 @@ public class PlayerController : MonoBehaviour
     {
         healthText.text = Mathf.Ceil(currentHealth).ToString();
         healthSlider.value = Mathf.Ceil(currentHealth);
-        healthSlider.maxValue = Mathf.Ceil(maxHealth);
+        healthSlider.maxValue = Mathf.Ceil(GetMaxHealth());
         manaText.text = Mathf.Floor(currentMana).ToString();
         manaSlider.value = Mathf.Floor(currentMana);
-        manaSlider.maxValue = Mathf.Floor(maxMana);
+        manaSlider.maxValue = Mathf.Floor(GetMaxMana());
 
         additionalHealthSlider.value = Mathf.Ceil(currentHealth);
-        additionalHealthSlider.maxValue = Mathf.Ceil(maxHealth);
+        additionalHealthSlider.maxValue = Mathf.Ceil(GetMaxHealth());
         additionalManaSlider.value = Mathf.Ceil(currentMana);
-        additionalManaSlider.maxValue = Mathf.Ceil(maxMana);
+        additionalManaSlider.maxValue = Mathf.Ceil(GetMaxMana());
     }
 
 
     private void RechargeMana()
     {
         // Wisdom increases mana recharge by 5% per rank, adjustements might be needed when game balance becomes more clear
-        currentMana = Mathf.Min(maxMana, currentMana + GetCurrentManaRecharge() * Time.deltaTime);
+        currentMana = Mathf.Min(GetMaxMana(), currentMana + GetCurrentManaRecharge() * Time.deltaTime);
     }
 
 
@@ -498,16 +498,16 @@ public class PlayerController : MonoBehaviour
     {
         currentHealth = value;
 
-        if (currentHealth > maxHealth)
+        if (currentHealth > GetMaxHealth())
         {
-            currentHealth = maxHealth;
+            currentHealth = GetMaxHealth();
         }
     }
 
 
     public void SetHealthFull()
     {
-        currentHealth = maxHealth;
+        currentHealth = GetMaxHealth();
     }
 
 
@@ -515,9 +515,9 @@ public class PlayerController : MonoBehaviour
     {
         currentHealth += amount;
 
-        if (currentHealth > maxHealth)
+        if (currentHealth > GetMaxHealth())
         {
-            currentHealth = maxHealth;
+            currentHealth = GetMaxHealth();
         }
 
         spriteRenderer.color = Color.green;
@@ -543,7 +543,7 @@ public class PlayerController : MonoBehaviour
     {
         while (Time.time < healEndTime)
         {
-            AddHealth(maxHealth * 0.05f);
+            AddHealth(GetMaxHealth() * 0.05f);
             healIconTimer.text = $"{Mathf.CeilToInt(healEndTime - Time.time)}s";
             yield return new WaitForSeconds(1f);
         }
@@ -555,7 +555,7 @@ public class PlayerController : MonoBehaviour
 
     public float GetMaxHealth()
     {
-        return maxHealth;
+        return maxHealth + tempMaxHealth;
     }
 
 
@@ -581,10 +581,9 @@ public class PlayerController : MonoBehaviour
     {
         tempHealthIcon.SetActive(true);
 
-        tempMaxHealth += additionalMaxHealth;
-        maxHealth += additionalMaxHealth;
+        tempMaxHealth = Mathf.Max(tempMaxHealth, additionalMaxHealth);
+        tempMaxHealthEndTime = Mathf.Max(tempMaxHealthEndTime, Time.time + duration);
 
-        tempMaxHealthEndTime = Time.time + duration;
         tempHealthIconDuration.text = $"{Mathf.CeilToInt(tempMaxHealthEndTime - Time.time)}s";
         tempHealthIconAmount.text = tempMaxHealth.ToString();
 
@@ -603,7 +602,6 @@ public class PlayerController : MonoBehaviour
             yield return new WaitForSeconds(1f);
         }
 
-        maxHealth -= tempMaxHealth;
         tempMaxHealth = 0;
 
         if (currentHealth > maxHealth)
@@ -631,16 +629,16 @@ public class PlayerController : MonoBehaviour
     {
         currentMana = value;
 
-        if (currentMana > maxMana)
+        if (currentMana > GetMaxMana())
         {
-            currentMana = maxMana;
+            currentMana = GetMaxMana();
         }
     }
 
 
     public void SetManaFull()
     {
-        currentMana = maxMana;
+        currentMana = GetMaxMana();
     }
 
 
@@ -648,9 +646,9 @@ public class PlayerController : MonoBehaviour
     {
         currentMana += amount;
 
-        if (currentMana > maxMana)
+        if (currentMana > GetMaxMana())
         {
-            currentMana = maxMana;
+            currentMana = GetMaxMana();
         }
     }
 
@@ -674,7 +672,7 @@ public class PlayerController : MonoBehaviour
 
     public float GetMaxMana()
     {
-        return maxMana;
+        return maxMana + tempMaxMana;
     }
 
 
@@ -696,27 +694,19 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    public void AddTempMaxMana(int additionalMaxMana, float duration)
+    public void AddTempMaxMana(float additionalMaxMana, float duration)
     {
         tempManaIcon.SetActive(true);
 
-        tempMaxMana += additionalMaxMana;
-        maxMana += additionalMaxMana;
+        tempMaxMana = Mathf.Max(tempMaxMana, additionalMaxMana);
+        tempMaxManaEndTime = Mathf.Max(tempMaxManaEndTime, Time.time + duration);
 
-        if (tempMaxManaCoroutine != null)
+        tempManaIconDuration.text = $"{Mathf.CeilToInt(tempMaxManaEndTime - Time.time)}s";
+        tempManaIconAmount.text = tempMaxMana.ToString();
+
+        if (tempMaxManaCoroutine == null)
         {
-            // Extend old coroutine
-            tempMaxManaEndTime += duration;
-            tempManaIconDuration.text = $"{Mathf.CeilToInt(tempMaxManaEndTime - Time.time)}s";
-            tempManaIconAmount.text = tempMaxMana.ToString();
-        }
-        else
-        {
-            // Start a new coroutine
-            tempMaxManaEndTime = Time.time + duration;
             tempMaxManaCoroutine = StartCoroutine(DisplayMaxManaBuff());
-            tempManaIconDuration.text = $"{Mathf.CeilToInt(tempMaxManaEndTime - Time.time)}s";
-            tempManaIconAmount.text = tempMaxMana.ToString();
         }
     }
 
@@ -729,7 +719,6 @@ public class PlayerController : MonoBehaviour
             yield return new WaitForSeconds(1f);
         }
 
-        maxMana -= tempMaxMana;
         tempMaxMana = 0;
 
         if (currentMana > maxMana)

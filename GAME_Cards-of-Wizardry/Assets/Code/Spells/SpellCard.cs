@@ -42,7 +42,7 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     private bool spellCancelled = false;
     private bool spellDiscarded = false;
     private PointerEventData currentEventData;
-    private float cooldownTimeRemaining = 0f;
+    public float cooldownTimeRemaining = 0f;
 
     private Animator animator;
     private RuntimeAnimatorController originalController;

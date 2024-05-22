@@ -51,7 +51,7 @@ public class SpellBook : ScriptableObject
         }
 
         AddSpell("Fireball", 3);
-        AddSpell("Fire Storm", 1);
+        AddSpell("Fire Storm", 11);
 
         // Testing
         //AddSpell("Fireball", 1);
@@ -62,8 +62,10 @@ public class SpellBook : ScriptableObject
         //AddSpell("Fire Burst", 1);
         //AddSpell("Freeze", 1);
         //AddSpell("Empower", 1);
-        AddSpell("Refresh", 11);
-        AddSpell("Fire Volley", 11);
+        AddSpell("Refresh", 1);
+        //AddSpell("Fire Volley", 1);
+        AddSpell("Reset", 1);
+        //AddSpell("Mana Flow", 1);
         //AddSpell("Teleport", 1);
     }
 
