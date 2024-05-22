@@ -62,7 +62,8 @@ public class SpellBook : ScriptableObject
         //AddSpell("Fire Burst", 1);
         //AddSpell("Freeze", 1);
         //AddSpell("Empower", 1);
-        AddSpell("Refresh", 1);
+        AddSpell("Refresh", 11);
+        AddSpell("Fire Volley", 11);
         //AddSpell("Teleport", 1);
     }
 
