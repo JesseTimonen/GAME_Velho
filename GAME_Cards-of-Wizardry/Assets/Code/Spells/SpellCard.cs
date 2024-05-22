@@ -367,6 +367,9 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
     public void StartRechargeSpell(float cooldownDuration = -1f)
     {
+        manaCostText.text = "";
+        cooldownDelayText.text = "";
+
         if (cooldownDuration == -1f)
         {
             if (masteryLevelTier == 1)

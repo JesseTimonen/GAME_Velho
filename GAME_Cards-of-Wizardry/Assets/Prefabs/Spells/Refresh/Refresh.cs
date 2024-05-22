@@ -7,6 +7,14 @@ public class Refresh : MonoBehaviour
     void Start()
     {
         GameManager.Instance.GetPlayerController().AddMana(manaGain);
+
+
+        // Give audio source time to play spell audio
+        Invoke(nameof(DestroyGameObject), 3f);
+    }
+
+    private void DestroyGameObject()
+    {
         Destroy(gameObject);
     }
 }

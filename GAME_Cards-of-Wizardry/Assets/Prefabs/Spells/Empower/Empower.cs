@@ -8,6 +8,14 @@ public class Empower : MonoBehaviour
     void Start()
     {
         GameManager.Instance.GetPlayerController().ActivateEmpower(damageBuff, duration);
+
+
+        // Give audio source time to play spell audio
+        Invoke(nameof(DestroyGameObject), 3f);
+    }
+
+    private void DestroyGameObject()
+    {
         Destroy(gameObject);
     }
 }

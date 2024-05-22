@@ -22,5 +22,13 @@ public class ManaFlow : MonoBehaviour
         }
 
         playerController.AddMana(maxMana * manaReplenish);
+
+        // Give audio source time to play spell audio
+        Invoke(nameof(DestroyGameObject), 5f);
+    }
+
+    private void DestroyGameObject()
+    {
+        Destroy(gameObject);
     }
 }

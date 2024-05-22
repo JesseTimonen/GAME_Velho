@@ -50,23 +50,24 @@ public class SpellBook : ScriptableObject
             spells[i] = spell;
         }
 
-        AddSpell("Fireball", 3);
-        AddSpell("Fire Storm", 11);
+        //AddSpell("Fireball", 3);
+        //AddSpell("Fire Storm", 1);
 
         // Testing
-        //AddSpell("Fireball", 1);
-        //AddSpell("Fire Storm", 1);
-        //AddSpell("Shield", 1);
-        //AddSpell("Heal", 1);
-        //AddSpell("Meteorite", 1);
-        //AddSpell("Fire Burst", 1);
-        //AddSpell("Freeze", 1);
-        //AddSpell("Empower", 1);
+        AddSpell("Fireball", 1);
+        AddSpell("Fire Storm", 1);
+        AddSpell("Shield", 1);
+        AddSpell("Heal", 1);
+        AddSpell("Meteorite", 1);
+        AddSpell("Fire Burst", 1);
+        AddSpell("Freeze", 1);
+        AddSpell("Empower", 1);
         AddSpell("Refresh", 1);
-        //AddSpell("Fire Volley", 1);
+        AddSpell("Fire Volley", 1);
         AddSpell("Reset", 1);
-        //AddSpell("Mana Flow", 1);
-        //AddSpell("Teleport", 1);
+        AddSpell("Mana Flow", 1);
+        AddSpell("Teleport", 1);
+        AddSpell("Arcane Fury", 1);
     }
 
 
