@@ -27,6 +27,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI healIconTimer;
     [SerializeField] private GameObject freezeIcon;
     [SerializeField] private TextMeshProUGUI freezeIconTimer;
+    [SerializeField] private GameObject empowerIcon;
+    [SerializeField] private TextMeshProUGUI empowerIconTimer;
+    [SerializeField] private TextMeshProUGUI empowerIconValue;
     private Rigidbody2D rb;
     private Camera mainCamera;
 
@@ -84,6 +87,9 @@ public class PlayerController : MonoBehaviour
     private Coroutine healCoroutine;
     private float healEndTime;
 
+    private Coroutine empowerCoroutine;
+    private float empowerEndTime;
+
     private Coroutine tempMaxHealthCoroutine;
     private float tempMaxHealthEndTime;
 
@@ -96,6 +102,7 @@ public class PlayerController : MonoBehaviour
     private bool isLookingRight = true;
     private bool isImmortal = false;
     private bool isdead = false;
+    private float empowerDamageBuff = 0f;
 
 
     private void Start()
@@ -443,6 +450,43 @@ public class PlayerController : MonoBehaviour
         shieldHealEnabled = true;
     }
 
+    public void ActivateEmpower(float damageBuff, float duration)
+    {
+        empowerIcon.SetActive(true);
+
+        empowerDamageBuff = Mathf.Max(empowerDamageBuff, damageBuff);
+        empowerIconValue.text = empowerDamageBuff + "%";
+
+        if (empowerCoroutine != null)
+        {
+            if (Time.time + duration > empowerEndTime)
+            {
+                empowerEndTime = Time.time + duration;
+            }
+        }
+        else
+        {
+            empowerEndTime = Time.time + duration;
+            empowerCoroutine = StartCoroutine(EmpowerCountDown());
+        }
+
+        empowerIconTimer.text = $"{Mathf.CeilToInt(empowerEndTime - Time.time)}s";
+    }
+
+
+    private IEnumerator EmpowerCountDown()
+    {
+        while (Time.time < empowerEndTime)
+        {
+            empowerIconTimer.text = $"{Mathf.CeilToInt(empowerEndTime - Time.time)}s";
+            yield return new WaitForSeconds(1f);
+        }
+
+        empowerCoroutine = null;
+        empowerIcon.SetActive(false);
+        empowerDamageBuff = 0;
+    }
+
 
     public float GetCurrentHealth()
     {
@@ -783,12 +827,18 @@ public class PlayerController : MonoBehaviour
         return 1f + (Mathf.Min(shieldAmount, shieldMaxDamageAt) * 0.0005f);
     }
 
+    public float GetEmpowerDamageBoost()
+    {
+        return 1 + (empowerDamageBuff / 100f);
+    }
+
     public float GetDamageBoost()
     {
         float intBoost = GetIntelligenceDamageBoost();
         float shieldBoost = GetShieldDamageBoost();
+        float empowerBoost = GetEmpowerDamageBoost();
 
-        return (intBoost - 1) + (shieldBoost - 1) + 1;
+        return (intBoost - 1) + (shieldBoost - 1) + (empowerBoost - 1) + 1;
     }
 
 

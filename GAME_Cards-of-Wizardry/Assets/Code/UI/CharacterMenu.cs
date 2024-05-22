@@ -59,9 +59,10 @@ public class CharacterMenu : MonoBehaviour
 
         // Damage Boost
         damageBoostText.text = "Damage Boost:" + Mathf.Round(playerController.GetDamageBoost() * 100f) + "%";
-        if (playerController.GetShieldDamageBoost() > 1)
+        float extraDamageBoost = Mathf.Round((playerController.GetShieldDamageBoost() - 1) * 100f) + Mathf.Round((playerController.GetEmpowerDamageBoost() - 1) * 100f);
+        if (extraDamageBoost > 0 )
         {
-            damageBoostText.text += " <color=#FFB400>(+" + Mathf.Round((playerController.GetShieldDamageBoost() - 1) * 100f) + "%)</color>";
+            damageBoostText.text += " <color=#FFB400>(+" + extraDamageBoost + "%)</color>";
         }
 
         // Damage Reduction
