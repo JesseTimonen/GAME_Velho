@@ -98,6 +98,9 @@ public class EnemyStats : MonoBehaviour
         healthBar.SetActive(false);
         levelUpManager.AddExperience(experienceGain);
         animator.SetTrigger("Die");
+
+        StopAllCoroutines();
+        StopAllParticles();
     }
 
     public bool IsAlive()
@@ -112,6 +115,8 @@ public class EnemyStats : MonoBehaviour
 
     public void AddHealth(int amount)
     {
+        if (isDead) return;
+
         health = Mathf.Min(health + amount, maxHealth);
         UpdateHealthBar();
 
@@ -124,7 +129,9 @@ public class EnemyStats : MonoBehaviour
 
     public void SetHealth(int newHealth)
     {
-        health += Mathf.Min(newHealth, maxHealth);
+        if (isDead) return;
+
+        health = Mathf.Min(newHealth, maxHealth);
     }
 
     public int GetHealth()
@@ -156,7 +163,7 @@ public class EnemyStats : MonoBehaviour
     #region Shield
     public void AddShield(int shieldAmount, float duration)
     {
-        if (shieldParticles == null) return;
+        if (isDead || shieldParticles == null) return;
 
         shieldHealth = Mathf.Max(shieldHealth, shieldAmount);
         shieldParticles.Play();
@@ -174,7 +181,7 @@ public class EnemyStats : MonoBehaviour
     #region Burn
     public void SetOnFire(float duration)
     {
-        if (fireImmunity || burningParticles == null) return;
+        if (isDead || fireImmunity || burningParticles == null) return;
 
         burningParticles.Play();
         duration /= GameManager.Instance.GetSurvivalModifier();
@@ -187,6 +194,8 @@ public class EnemyStats : MonoBehaviour
 
         while (Time.time < burnEndTime)
         {
+            if (isDead) yield break;
+
             TakeDamage(10, true);
             yield return new WaitForSeconds(1f);
         }
@@ -198,7 +207,7 @@ public class EnemyStats : MonoBehaviour
     #region Reflect
     public void AddReflect(float intensity, float duration)
     {
-        if (reflectParticles == null) return;
+        if (isDead || reflectParticles == null) return;
 
         reflectIntensity = Mathf.Max(reflectIntensity, intensity);
         reflectParticles.Play();
@@ -223,6 +232,8 @@ public class EnemyStats : MonoBehaviour
     #region Freeze
     public void Freeze(float duration)
     {
+        if (isDead) return;
+
         GameObject instantiatedfloatingText = InstantiateFloatingText(frozenFloatingPrefab);
         instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = freezeImmunity ? "Immune" : "Frozen";
 
@@ -262,5 +273,33 @@ public class EnemyStats : MonoBehaviour
         }
 
         activeCoroutines[key] = StartCoroutine(coroutine);
+    }
+
+    private void StopAllCoroutines()
+    {
+        foreach (var coroutine in activeCoroutines.Values)
+        {
+            StopCoroutine(coroutine);
+        }
+
+        activeCoroutines.Clear();
+    }
+
+    private void StopAllParticles()
+    {
+        if (burningParticles != null && burningParticles.isPlaying)
+        {
+            burningParticles.Stop();
+        }
+
+        if (shieldParticles != null && shieldParticles.isPlaying)
+        {
+            shieldParticles.Stop();
+        }
+
+        if (reflectParticles != null && reflectParticles.isPlaying)
+        {
+            reflectParticles.Stop();
+        }
     }
 }

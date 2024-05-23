@@ -2,7 +2,6 @@ using System.Collections;
 using UnityEditor;
 using UnityEngine;
 
-
 public class Wizard : MonoBehaviour
 {
     public enum WizardType { Fire, Healing, Shielding }
@@ -51,6 +50,7 @@ public class Wizard : MonoBehaviour
     public float healingSurvivalHealAmount = 0.5f;
     public float healingSurvivalRunDuration = 5f;
     private float healTimer;
+    private Collider2D selfCollider;
 
     [Header("Shielding Wizard Attributes")]
     public GameObject iceballPrefab;
@@ -60,7 +60,6 @@ public class Wizard : MonoBehaviour
     public int survivalShieldAmount = 500;
     private float iceballTimer;
 
-
     private void Start()
     {
         player = GameManager.Instance.GetPlayerTransform();
@@ -69,55 +68,60 @@ public class Wizard : MonoBehaviour
         animator = GetComponent<Animator>();
         boxCollider = GetComponent<BoxCollider2D>();
         dissolveMaterial = GetComponent<Renderer>().material;
+        selfCollider = GetComponent<Collider2D>();
 
         teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
         wizardState = WizardState.Moving;
     }
 
-
     private void Update()
     {
-        if (stats.IsAlive() && !stats.IsFrozen())
+        if (!stats.IsAlive() || stats.IsFrozen()) return;
+
+        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+
+        if (!survivalSkillUsed && stats.GetHealth() <= stats.GetMaxHealth() * survivalSkillHealthThreshold)
         {
-            float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+            ActivateSurvivalSkill();
+            survivalSkillUsed = true;
+        }
 
-            if (!survivalSkillUsed && stats.GetHealth() <= stats.GetMaxHealth() * survivalSkillHealthThreshold)
+        HandleTeleportation(distanceToPlayer);
+        HandleWizardBehavior(distanceToPlayer);
+        specialAbilityTimer -= Time.deltaTime;
+    }
+
+    private void HandleTeleportation(float distanceToPlayer)
+    {
+        if (!isTeleporting)
+        {
+            teleportTimer -= Time.deltaTime;
+
+            if (teleportTimer <= 0 && !teleportDisabled && distanceToPlayer <= furthestRadius)
             {
-                ActivateSurvivalSkill();
-                survivalSkillUsed = true;
+                teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
+                StartCoroutine(Teleport());
             }
-
-            if (!isTeleporting)
-            {
-                teleportTimer -= Time.deltaTime;
-
-                if (teleportTimer <= 0 && !teleportDisabled && distanceToPlayer <= furthestRadius)
-                {
-                    teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
-                    StartCoroutine(Teleport());
-                }
-            }
-
-            switch (wizardType)
-            {
-                case WizardType.Fire:
-                    HandleWizardBehavior(distanceToPlayer, ref fireballTimer, LaunchFireball, LaunchSmallFireballs);
-                    break;
-                case WizardType.Healing:
-                    HandleWizardBehavior(distanceToPlayer, ref healTimer, HealLowestHealthEnemy, HealAllNearbyEnemies);
-                    break;
-                case WizardType.Shielding:
-                    HandleWizardBehavior(distanceToPlayer, ref iceballTimer, LaunchIceball, ShieldAllNearbyEnemies);
-                    break;
-            }
-
-            specialAbilityTimer -= Time.deltaTime;
         }
     }
 
+    private void HandleWizardBehavior(float distanceToPlayer)
+    {
+        switch (wizardType)
+        {
+            case WizardType.Fire:
+                HandleBehavior(distanceToPlayer, ref fireballTimer, LaunchFireball, LaunchSmallFireballs);
+                break;
+            case WizardType.Healing:
+                HandleBehavior(distanceToPlayer, ref healTimer, HealLowestHealthEnemy, HealAllNearbyEnemies);
+                break;
+            case WizardType.Shielding:
+                HandleBehavior(distanceToPlayer, ref iceballTimer, LaunchIceball, ShieldAllNearbyEnemies);
+                break;
+        }
+    }
 
-
-    private void HandleWizardBehavior(float distanceToPlayer, ref float timer, System.Action basicAction, System.Action specialAction)
+    private void HandleBehavior(float distanceToPlayer, ref float timer, System.Action basicAction, System.Action specialAction)
     {
         if (wizardState == WizardState.Moving)
         {
@@ -155,7 +159,6 @@ public class Wizard : MonoBehaviour
         }
     }
 
-
     private IEnumerator Teleport()
     {
         if (!isTeleporting)
@@ -169,7 +172,6 @@ public class Wizard : MonoBehaviour
             isTeleporting = false;
         }
     }
-
 
     private IEnumerator DissolveEffect(bool isAppearing)
     {
@@ -187,7 +189,6 @@ public class Wizard : MonoBehaviour
         dissolveMaterial.SetFloat("_Fade", endValue);
     }
 
-
     private void MoveToIdealRadius(float distanceToPlayer)
     {
         Vector2 direction = Vector2.zero;
@@ -204,14 +205,12 @@ public class Wizard : MonoBehaviour
         rb.velocity = direction * moveSpeed;
     }
 
-
     private void LaunchFireball()
     {
         GameObject fireball = Instantiate(fireballPrefab, transform.position, Quaternion.identity);
         Vector2 direction = (player.position - transform.position).normalized;
         fireball.GetComponent<EnemyFireball>().SetDirection(direction);
     }
-
 
     private void LaunchSmallFireballs()
     {
@@ -224,7 +223,6 @@ public class Wizard : MonoBehaviour
         }
     }
 
-
     private void LaunchIceball()
     {
         GameObject iceball = Instantiate(iceballPrefab, transform.position, Quaternion.identity);
@@ -232,14 +230,12 @@ public class Wizard : MonoBehaviour
         iceball.GetComponent<EnemyIceball>().SetDirection(direction);
     }
 
-
     private void HealLowestHealthEnemy()
     {
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, healBurstRadius, LayerMask.GetMask("Enemy"));
         EnemyStats lowestHealthEnemyStats = null;
         Collider2D lowestHealthCollider = null;
         float lowestHealthPercentage = float.MaxValue;
-        Collider2D selfCollider = GetComponent<Collider2D>();
 
         foreach (var hitCollider in hitColliders)
         {
@@ -248,7 +244,7 @@ public class Wizard : MonoBehaviour
                 EnemyStats enemyStats = hitCollider.GetComponent<EnemyStats>();
                 if (enemyStats != null)
                 {
-                    float healthPercentage = enemyStats.GetHealth() / enemyStats.GetMaxHealth();
+                    float healthPercentage = (float)enemyStats.GetHealth() / enemyStats.GetMaxHealth();
                     if (healthPercentage < lowestHealthPercentage)
                     {
                         lowestHealthPercentage = healthPercentage;
@@ -267,7 +263,6 @@ public class Wizard : MonoBehaviour
         }
     }
 
-
     private void HealAllNearbyEnemies()
     {
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, healBurstRadius, LayerMask.GetMask("Enemy"));
@@ -284,7 +279,6 @@ public class Wizard : MonoBehaviour
         healingBurstParticles.Play();
     }
 
-
     private void ShieldAllNearbyEnemies()
     {
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, shieldRadius, LayerMask.GetMask("Enemy"));
@@ -298,7 +292,6 @@ public class Wizard : MonoBehaviour
             }
         }
     }
-
 
     private void ActivateSurvivalSkill()
     {
@@ -341,13 +334,10 @@ public class Wizard : MonoBehaviour
         teleportDisabled = false;
     }
 
-
-
     public void DestroyGameobject()
     {
         Destroy(gameObject);
     }
-
 
     #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
@@ -359,6 +349,7 @@ public class Wizard : MonoBehaviour
     }
     #endif
 }
+
 
 
 

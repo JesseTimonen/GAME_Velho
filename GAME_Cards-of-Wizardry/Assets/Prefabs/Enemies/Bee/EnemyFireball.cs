@@ -3,11 +3,13 @@ using UnityEngine;
 
 public class EnemyFireball : MonoBehaviour
 {
-    [SerializeField] private float speed = 5f;
     [SerializeField] private int minDamage = 8;
     [SerializeField] private int maxDamage = 12;
     [SerializeField] private float fireDuration = 3f;
+    [SerializeField] private float speed = 5f;
     [SerializeField] private float lifetime = 10f;
+
+    [Header("Fireball Fragments")]
     [SerializeField] private bool spawnSmallFireballs = false;
     [SerializeField] private GameObject smallFireballPrefab;
     [SerializeField] private float smallFireballInterval = 1f;

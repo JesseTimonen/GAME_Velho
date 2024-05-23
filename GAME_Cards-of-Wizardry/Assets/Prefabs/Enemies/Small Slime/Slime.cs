@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class Slime : MonoBehaviour
 {
     private EnemyStats stats;
@@ -14,6 +13,7 @@ public class Slime : MonoBehaviour
     [SerializeField] private float jumpForce = 10f;
     [SerializeField] private float jumpCooldownMin = 2f;
     [SerializeField] private float jumpCooldownMax = 3f;
+    private float jumpTimer;
 
     [Header("Damage")]
     [SerializeField] private int minDamage = 15;
@@ -27,9 +27,6 @@ public class Slime : MonoBehaviour
     [SerializeField] private float sizeModifierMin;
     [SerializeField] private float sizeModifierMax;
 
-    private float jumpTimer;
-
-
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -39,24 +36,28 @@ public class Slime : MonoBehaviour
         attackCollider.enabled = false;
     }
 
-
     private void Start()
     {
         player = GameManager.Instance.GetPlayerTransform();
         playerController = GameManager.Instance.GetPlayerController();
-        jumpTimer = Random.Range(jumpCooldownMin, jumpCooldownMax);
+
+        ResetJumpTimer();
 
         if (enableSizeModifier)
         {
-            float sizeModifier = Random.Range(sizeModifierMin, sizeModifierMax);
-            transform.localScale = new Vector3(sizeModifier, sizeModifier, sizeModifier);
-            stats.SetMaxHealth(Mathf.RoundToInt(stats.GetMaxHealth() * sizeModifier));
-            stats.SetHealth(stats.GetMaxHealth());
-            minDamage = Mathf.RoundToInt(minDamage * sizeModifier);
-            maxDamage = Mathf.RoundToInt(maxDamage * sizeModifier);
+            ApplySizeModifier();
         }
     }
 
+    private void ApplySizeModifier()
+    {
+        float sizeModifier = Random.Range(sizeModifierMin, sizeModifierMax);
+        transform.localScale = new Vector3(sizeModifier, sizeModifier, sizeModifier);
+        stats.SetMaxHealth(Mathf.RoundToInt(stats.GetMaxHealth() * sizeModifier));
+        stats.SetHealth(stats.GetMaxHealth());
+        minDamage = Mathf.RoundToInt(minDamage * sizeModifier);
+        maxDamage = Mathf.RoundToInt(maxDamage * sizeModifier);
+    }
 
     private void Update()
     {
@@ -70,6 +71,10 @@ public class Slime : MonoBehaviour
         }
     }
 
+    private void ResetJumpTimer()
+    {
+        jumpTimer = Random.Range(jumpCooldownMin, jumpCooldownMax);
+    }
 
     private void JumpTowardsPlayer()
     {
@@ -81,21 +86,28 @@ public class Slime : MonoBehaviour
         rb.velocity = Vector2.zero;
         rb.AddForce(direction * jumpForce, ForceMode2D.Impulse);
 
-        jumpTimer = Random.Range(jumpCooldownMin, jumpCooldownMax);
+        ResetJumpTimer();
 
         attackCollider.enabled = true;
     }
 
-
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag("Player") || stats.IsFrozen()) return;
+        if (stats.IsFrozen() || !other.CompareTag("Player")) return;
 
         attackCollider.enabled = false;
+        ApplyDamageToPlayer();
+        ApplyKnockback();
+    }
 
-        // Damage player
-        playerController.TakeDamage(Mathf.RoundToInt(Random.Range(minDamage, maxDamage) * GameManager.Instance.GetSurvivalModifier()));
+    private void ApplyDamageToPlayer()
+    {
+        int damage = Mathf.RoundToInt(Random.Range(minDamage, maxDamage) * GameManager.Instance.GetSurvivalModifier());
+        playerController.TakeDamage(damage);
+    }
 
+    private void ApplyKnockback()
+    {
         // Knockback player
         Vector2 knockbackDirection = (player.position - transform.position).normalized;
         playerController.Knockback(knockbackDirection, knockbackForce, knockbackDuration);
@@ -104,13 +116,11 @@ public class Slime : MonoBehaviour
         rb.AddForce(-knockbackDirection * selfKnockbackForce, ForceMode2D.Impulse);
     }
 
-
     // Called from animation event
     public void EndJump()
     {
         attackCollider.enabled = false;
     }
-
 
     // Called from animation event
     public void EnemyDied()
@@ -119,9 +129,8 @@ public class Slime : MonoBehaviour
         rb.velocity = Vector2.zero;
     }
 
-
     // Called from animation event
-    public void DestroyGameobject()
+    public void DestroyGameObject()
     {
         Destroy(gameObject);
     }

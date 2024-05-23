@@ -1,13 +1,13 @@
 using System.Collections;
 using UnityEngine;
 
-
 public class Bee : MonoBehaviour
 {
     private EnemyStats stats;
     private Transform player;
     private Rigidbody2D rb;
     private Animator animator;
+    private Renderer renderer;
 
     public enum BeeState { Searching, Aggressive }
     public BeeState currentState = BeeState.Searching;
@@ -47,21 +47,19 @@ public class Bee : MonoBehaviour
     [Header("UI")]
     [SerializeField] private Transform healthBarCanvas;
 
-
     private void Awake()
     {
         animator = GetComponent<Animator>();
         stats = GetComponent<EnemyStats>();
         rb = GetComponent<Rigidbody2D>();
+        renderer = GetComponent<Renderer>();
     }
-
 
     private void Start()
     {
         player = GameManager.Instance.GetPlayerTransform();
         shootingRange = initialShootingRange;
     }
-
 
     private void Update()
     {
@@ -71,38 +69,50 @@ public class Bee : MonoBehaviour
 
         if (!isEnraged && stats.GetHealth() <= stats.GetMaxHealth() * 0.33f)
         {
-            isEnraged = true;
-
-            Renderer renderer = GetComponent<Renderer>();
-            renderer.material = enrageMaterial;
+            EnterEnragedState();
         }
 
         switch (currentState)
         {
             case BeeState.Searching:
-                if (distanceToPlayer > shootingRange)
-                {
-                    FlyTowardsPlayer();
-                }
-                else
-                {
-                    EnterAggressiveMode();
-                }
+                HandleSearchingState(distanceToPlayer);
                 break;
 
             case BeeState.Aggressive:
-                if (distanceToPlayer > shootingRange * 2)
-                {
-                    ExitAggressiveMode();
-                }
-                else if (!isFiring)
-                {
-                    PrepareForAttack();
-                }
+                HandleAggressiveState(distanceToPlayer);
                 break;
         }
     }
 
+    private void EnterEnragedState()
+    {
+        isEnraged = true;
+        renderer.material = enrageMaterial;
+    }
+
+    private void HandleSearchingState(float distanceToPlayer)
+    {
+        if (distanceToPlayer > shootingRange)
+        {
+            FlyTowardsPlayer();
+        }
+        else
+        {
+            EnterAggressiveMode();
+        }
+    }
+
+    private void HandleAggressiveState(float distanceToPlayer)
+    {
+        if (distanceToPlayer > shootingRange * 2)
+        {
+            ExitAggressiveMode();
+        }
+        else if (!isFiring)
+        {
+            PrepareForAttack();
+        }
+    }
 
     private void FlyTowardsPlayer()
     {
@@ -111,20 +121,17 @@ public class Bee : MonoBehaviour
         FlipGameObject();
     }
 
-
     private void EnterAggressiveMode()
     {
         currentState = BeeState.Aggressive;
         shootingRange *= 2;
     }
 
-
     private void ExitAggressiveMode()
     {
         currentState = BeeState.Searching;
         shootingRange = initialShootingRange;
     }
-
 
     private void PrepareForAttack()
     {
@@ -133,7 +140,6 @@ public class Bee : MonoBehaviour
         InitializeAttack();
         Dodge();
     }
-
 
     private void InitializeAttack()
     {
@@ -147,7 +153,6 @@ public class Bee : MonoBehaviour
         StartCoroutine(FireBurst());
     }
 
-
     private IEnumerator FireBurst()
     {
         isFiring = true;
@@ -156,10 +161,7 @@ public class Bee : MonoBehaviour
 
         for (int i = 0; i < projectilesToShoot; i++)
         {
-            if (stats.IsFrozen())
-            {
-                break;
-            }
+            if (stats.IsFrozen()) break;
 
             animator.SetTrigger("Attack");
             yield return new WaitForSeconds(delay);
@@ -167,7 +169,6 @@ public class Bee : MonoBehaviour
 
         isFiring = false;
     }
-
 
     private void Dodge()
     {
@@ -183,15 +184,11 @@ public class Bee : MonoBehaviour
         StartCoroutine(DodgeMovement(dodgeTarget));
     }
 
-
     private IEnumerator DodgeMovement(Vector2 targetPosition)
     {
         while ((targetPosition - (Vector2)transform.position).magnitude > 0.1f)
         {
-            if (stats.IsFrozen())
-            {
-                break;
-            }
+            if (stats.IsFrozen()) break;
 
             Vector2 direction = (targetPosition - (Vector2)transform.position).normalized;
             rb.velocity = direction * dodgeSpeed;
@@ -200,17 +197,16 @@ public class Bee : MonoBehaviour
         rb.velocity = Vector2.zero;
     }
 
-
     private void FlipGameObject()
     {
         bool facingLeft = (player.position - transform.position).normalized.x < 0;
         transform.rotation = Quaternion.Euler(0, facingLeft ? 0 : 180, 0);
 
+        // Flipping game object also flips the child canvas, so we need to flip canvas also to make a full rotation back to original rotation
         Vector3 healthBarEulerAngles = healthBarCanvas.localRotation.eulerAngles;
         healthBarEulerAngles.y = facingLeft ? 0 : 180;
         healthBarCanvas.localRotation = Quaternion.Euler(healthBarEulerAngles);
     }
-
 
     // Called from animation events
     public void FireProjectile()
@@ -225,12 +221,10 @@ public class Bee : MonoBehaviour
         }
     }
 
-
     private void FireSingleProjectile()
     {
         CreateProjectile((player.position - projectileSpawnPoint.position).normalized);
     }
-
 
     private void FireShotgun()
     {
@@ -247,16 +241,14 @@ public class Bee : MonoBehaviour
         }
     }
 
-
     private void CreateProjectile(Vector2 direction)
     {
         GameObject projectile = Instantiate(projectilePrefab, projectileSpawnPoint.position, Quaternion.identity);
         projectile.GetComponent<EnemyFireball>().SetDirection(direction);
     }
 
-
     // Called from animation event
-    public void DestroyGameobject()
+    public void DestroyGameObject()
     {
         Destroy(gameObject);
     }

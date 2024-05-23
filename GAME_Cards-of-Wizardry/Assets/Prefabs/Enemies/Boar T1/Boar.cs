@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class Boar : MonoBehaviour
 {
     private EnemyStats stats;
@@ -18,21 +17,19 @@ public class Boar : MonoBehaviour
     [SerializeField] private float preRushTime = 1f;
     [SerializeField] private float rushDuration = 3f;
     [SerializeField] private float recoveryTime = 5f;
+    private Vector2 rushDirection;
+    private float preRushTimer;
+    private float rushTimer;
+    private float recoveryTimer;
+    private bool isRushing = false;
+    private bool isRecovering = false;
+    private bool isPreRushing = false;
 
     [Header("Damage")]
     [SerializeField] private int minDamage = 15;
     [SerializeField] private int maxDamage = 25;
     [SerializeField] private float knockbackForce = 2f;
     [SerializeField] private float knockbackDuration = 0.3f;
-
-    private bool isRushing = false;
-    private bool isRecovering = false;
-    private bool isPreRushing = false;
-    private float rushTimer;
-    private float recoveryTimer;
-    private float preRushTimer;
-    private Vector2 rushDirection;
-
 
     private void Awake()
     {
@@ -45,13 +42,11 @@ public class Boar : MonoBehaviour
         attackCollider.enabled = false;
     }
 
-
     private void Start()
     {
         player = GameManager.Instance.GetPlayerTransform();
         playerController = GameManager.Instance.GetPlayerController();
     }
-
 
     private void Update()
     {
@@ -59,60 +54,79 @@ public class Boar : MonoBehaviour
         {
             if (isRecovering)
             {
-                recoveryTimer -= Time.deltaTime;
-
-                if (recoveryTimer <= 0)
-                {
-                    isRecovering = false;
-                    animator.SetBool("isWalking", true);
-                }
+                HandleRecovery();
             }
             else if (isRushing)
             {
-                rushTimer -= Time.deltaTime;
-                RushTowardsPlayer();
-
-                if (rushTimer <= 0)
-                {
-                    isRushing = false;
-                    isRecovering = true;
-                    recoveryTimer = recoveryTime;
-                    animator.SetBool("isRushing", false);
-                    attackCollider.enabled = false;
-                }
+                HandleRushing();
             }
             else if (isPreRushing)
             {
-                preRushTimer -= Time.deltaTime;
-                spriteRenderer.flipX = (player.position - transform.position).normalized.x > 0;
-
-                if (preRushTimer <= 0)
-                {
-                    isPreRushing = false;
-                    isRushing = true;
-                    rushDirection = (player.position - transform.position).normalized;
-                    animator.SetBool("isRushing", true);
-                    rushTimer = rushDuration;
-                    spriteRenderer.flipX = rushDirection.x > 0;
-                    attackCollider.enabled = true;
-                }
+                HandlePreRushing();
             }
             else
             {
-                if (Vector2.Distance(transform.position, player.position) <= rushRadius)
-                {
-                    isPreRushing = true;
-                    preRushTimer = preRushTime;
-                    animator.SetBool("isWalking", false);
-                }
-                else
-                {
-                    WalkTowardsPlayer();
-                }
+                HandleMovement();
             }
         }
     }
 
+    private void HandleRecovery()
+    {
+        recoveryTimer -= Time.deltaTime;
+
+        if (recoveryTimer <= 0)
+        {
+            isRecovering = false;
+            animator.SetBool("isWalking", true);
+        }
+    }
+
+    private void HandleRushing()
+    {
+        rushTimer -= Time.deltaTime;
+        RushTowardsPlayer();
+
+        if (rushTimer <= 0)
+        {
+            isRushing = false;
+            isRecovering = true;
+            recoveryTimer = recoveryTime;
+            animator.SetBool("isRushing", false);
+            attackCollider.enabled = false;
+        }
+    }
+
+    private void HandlePreRushing()
+    {
+        preRushTimer -= Time.deltaTime;
+        spriteRenderer.flipX = (player.position - transform.position).normalized.x > 0;
+
+        if (preRushTimer <= 0)
+        {
+            isPreRushing = false;
+            isRushing = true;
+            rushDirection = (player.position - transform.position).normalized;
+            animator.SetBool("isRushing", true);
+            rushTimer = rushDuration;
+            spriteRenderer.flipX = rushDirection.x > 0;
+            attackCollider.enabled = true;
+        }
+    }
+
+    private void HandleMovement()
+    {
+        if (Vector2.Distance(transform.position, player.position) <= rushRadius)
+        {
+            isPreRushing = true;
+            preRushTimer = preRushTime;
+            animator.SetBool("isWalking", false);
+        }
+        else
+        {
+            WalkTowardsPlayer();
+        }
+    }
 
     private void WalkTowardsPlayer()
     {
@@ -121,26 +135,28 @@ public class Boar : MonoBehaviour
         spriteRenderer.flipX = direction.x > 0;
     }
 
-
     private void RushTowardsPlayer()
     {
         rb.velocity = rushDirection * rushSpeed;
     }
 
-
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (isRushing && other.CompareTag("Player") && !stats.IsFrozen())
         {
-            // Damage player
-            playerController.TakeDamage(Mathf.RoundToInt(Random.Range(minDamage, maxDamage) * GameManager.Instance.GetSurvivalModifier()));
-
-            // Knockback player
-            Vector2 knockbackDirection = (player.position - transform.position).normalized;
-            playerController.Knockback(knockbackDirection, knockbackForce, knockbackDuration);
+            ApplyDamageToPlayer();
         }
     }
 
+    private void ApplyDamageToPlayer()
+    {
+        int damage = Mathf.RoundToInt(Random.Range(minDamage, maxDamage) * GameManager.Instance.GetSurvivalModifier());
+        playerController.TakeDamage(damage);
+
+        // Knockback player
+        Vector2 knockbackDirection = (player.position - transform.position).normalized;
+        playerController.Knockback(knockbackDirection, knockbackForce, knockbackDuration);
+    }
 
     // Called from animation event
     public void EnemyDied()
@@ -149,9 +165,8 @@ public class Boar : MonoBehaviour
         rb.velocity = Vector2.zero;
     }
 
-
     // Called from animation event
-    public void DestroyGameobject()
+    public void DestroyGameObject()
     {
         Destroy(gameObject);
     }
