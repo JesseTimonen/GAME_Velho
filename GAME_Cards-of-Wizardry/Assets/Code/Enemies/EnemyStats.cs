@@ -1,3 +1,4 @@
+using DamageNumbersPro;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,10 +11,18 @@ public class EnemyStats : MonoBehaviour
     public int experienceGain = 50;
     [SerializeField] private bool fireImmunity = false;
     [SerializeField] private bool freezeImmunity = false;
-    [SerializeField] private GameObject healthBar;
-    [SerializeField] private Slider healthBarSlider;
+
     [SerializeField] private ParticleSystem flameParticles;
     [SerializeField] private ParticleSystem shieldParticles;
+
+    [Header("UI")]
+    [SerializeField] private Transform canvas;
+    [SerializeField] private GameObject healthBar;
+    [SerializeField] private Slider healthBarSlider;
+    [SerializeField] private GameObject healFloatingPrefab;
+    [SerializeField] private GameObject damageFloatingPrefab;
+    [SerializeField] private GameObject fireFloatingPrefab;
+    [SerializeField] private GameObject frozenFloatingPrefab;
 
     [HideInInspector] public Animator animator;
     private SpriteRenderer spriteRenderer;
@@ -42,9 +51,22 @@ public class EnemyStats : MonoBehaviour
         health = maxHealth;
     }
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(int amount, bool isFireDamage = false)
     {
         if (isDead) return;
+
+        GameObject instantiatedfloatingText;
+
+        if (isFireDamage)
+        {
+            instantiatedfloatingText = Instantiate(fireFloatingPrefab, healthBar.transform.position, Quaternion.identity);
+        }
+        else
+        {
+            instantiatedfloatingText = Instantiate(damageFloatingPrefab, healthBar.transform.position, Quaternion.identity);
+        }
+
+        instantiatedfloatingText.transform.SetParent(canvas);
 
         if (shieldHealth > 0)
         {
@@ -53,16 +75,30 @@ public class EnemyStats : MonoBehaviour
             {
                 // Some damage went through the shield
                 health -= shieldHealth;
+                instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = shieldHealth;
                 ReflectDamage(Mathf.RoundToInt(shieldHealth * -1f));
 
                 shieldParticles.Stop();
                 shieldHealth = 0;
             }
+            else
+            {
+                instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = 0;
+            }
         }
         else
         {
+            instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = amount;
             health -= amount;
-            ReflectDamage(amount);
+
+            int relfectAmount = amount;
+
+            if (health - amount < 0)
+            {
+                relfectAmount = health;
+            }
+
+            ReflectDamage(relfectAmount);
         }
 
         UpdateHealthBar();
@@ -80,6 +116,10 @@ public class EnemyStats : MonoBehaviour
     {
         health = Mathf.Min(health + amount, maxHealth);
         UpdateHealthBar();
+
+        GameObject instantiatedfloatingText = Instantiate(healFloatingPrefab, healthBar.transform.position, Quaternion.identity);
+        instantiatedfloatingText.transform.SetParent(canvas);
+        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "+" + amount;
 
         spriteRenderer.color = Color.green;
         Invoke(nameof(ResetSpriteColor), 0.33f);
@@ -180,7 +220,7 @@ public class EnemyStats : MonoBehaviour
     {
         while (Time.time < burnEndTime)
         {
-            TakeDamage(10);
+            TakeDamage(10, true);
             yield return new WaitForSeconds(1f);
         }
 
@@ -224,7 +264,16 @@ public class EnemyStats : MonoBehaviour
 
     public void Freeze(float duration)
     {
-        if (freezeImmunity) return;
+        GameObject instantiatedfloatingText = Instantiate(frozenFloatingPrefab, healthBar.transform.position, Quaternion.identity);
+        instantiatedfloatingText.transform.SetParent(canvas);
+
+        if (freezeImmunity)
+        {
+            instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "Immune";
+            return;
+        }
+
+        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "Frozen";
 
         if (freezeCoroutine != null)
         {

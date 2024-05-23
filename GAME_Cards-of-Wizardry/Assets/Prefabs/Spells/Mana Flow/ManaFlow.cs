@@ -10,11 +10,11 @@ public class ManaFlow : MonoBehaviour
     private void Start()
     {
         PlayerController playerController = GameManager.Instance.GetPlayerController();
-        float currentHealth = playerController.GetCurrentHealth();
-        float maxMana = playerController.GetMaxMana();
-        float tempMana = playerController.GetTemporaryMana();
+        int currentHealth = playerController.GetCurrentHealth();
+        int maxMana = playerController.GetMaxMana();
+        int tempMana = playerController.GetTemporaryMana();
 
-        playerController.SetCurrentHealth(Mathf.Ceil(currentHealth - (currentHealth * healthSacrifice)));
+        playerController.SetCurrentHealth(Mathf.CeilToInt(currentHealth - (currentHealth * healthSacrifice)));
 
         if (tempManaMultiplier > 1)
         {

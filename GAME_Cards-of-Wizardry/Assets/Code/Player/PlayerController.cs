@@ -1,3 +1,4 @@
+using DamageNumbersPro;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -48,6 +49,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private ParticleSystem flameParticles;
 
     [Header("UI")]
+    [SerializeField] private Transform canvas;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI manaText;
     [SerializeField] private Slider healthSlider;
@@ -55,6 +57,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform additionalHealthBarCanvas;
     [SerializeField] private Slider additionalHealthSlider;
     [SerializeField] private Slider additionalManaSlider;
+    [SerializeField] private GameObject healFloatingPrefab;
+    [SerializeField] private GameObject manaFloatingPrefab;
+    [SerializeField] private GameObject damageFloatingPrefab;
+    [SerializeField] private GameObject burnFloatingPrefab;
+    [SerializeField] private GameObject frozenFloatingPrefab;
 
     [Header("Death")]
     [SerializeField] private GameObject dieScreenPanel;
@@ -67,11 +74,11 @@ public class PlayerController : MonoBehaviour
     private Vector2 knockbackVelocity;
 
     [Header("STATS")]
-    [SerializeField] private float maxHealth = 100;
-    [SerializeField] private float tempMaxHealth = 0;
-    [SerializeField] private float currentHealth = 100;
-    [SerializeField] private float maxMana = 100;
-    [SerializeField] private float tempMaxMana = 0;
+    [SerializeField] private int maxHealth = 100;
+    [SerializeField] private int tempMaxHealth = 0;
+    [SerializeField] private int currentHealth = 100;
+    [SerializeField] private int maxMana = 100;
+    [SerializeField] private int tempMaxMana = 0;
     [SerializeField] private float currentMana = 100;
     [SerializeField] private float manaRechargeRate = 2;
     [SerializeField] private int shieldAmount = 0;
@@ -235,17 +242,24 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(int amount, bool isFireDamage = false)
     {
         if (shieldAmount > 0)
         {
             HandleShield(ref amount);
-            if (amount <= 0) return;
+
+            if (amount <= 0)
+            {
+                GameObject instantiatedfloatingText = Instantiate(damageFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
+                instantiatedfloatingText.transform.SetParent(canvas);
+                instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = amount;
+                return;
+            }
         }
 
         spriteRenderer.color = Color.red;
         Invoke("ResetSpriteColor", 0.33f);
-        ApplyDamage(amount);
+        ApplyDamage(amount, isFireDamage);
     }
 
 
@@ -292,7 +306,7 @@ public class PlayerController : MonoBehaviour
     {
         while (Time.time < burnEndTime)
         {
-            TakeDamage(10);
+            TakeDamage(10, true);
             fireIconTimer.text = $"{Mathf.CeilToInt(burnEndTime - Time.time)}s";
             yield return new WaitForSeconds(1f);
         }
@@ -319,12 +333,25 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    private void ApplyDamage(int amount)
+    private void ApplyDamage(int amount, bool isFireDamage = false)
     {
         int damageTaken = Mathf.RoundToInt(amount * (1 - GetDamageReduction()));
 
         currentHealth -= damageTaken;
 
+        GameObject instantiatedfloatingText;
+
+        if (isFireDamage)
+        {
+            instantiatedfloatingText = Instantiate(burnFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
+        }
+        else
+        {
+            instantiatedfloatingText = Instantiate(damageFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
+        }
+
+        instantiatedfloatingText.transform.SetParent(canvas);
+        instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = amount;
 
         if (currentHealth <= 0)
         {
@@ -353,7 +380,6 @@ public class PlayerController : MonoBehaviour
         isImmortal = true;
         isdead = true;
         GameManager.Instance.hasPlayerDied = true;
-        SetCurrentHealth(1f);
 
         lastPlayedSong = musicManager.currentlyPlaying;
         musicManager.PlayMusic("Ending");
@@ -389,6 +415,8 @@ public class PlayerController : MonoBehaviour
 
         GameManager.Instance.UIPanelOpened = false;
         GameManager.Instance.ShowBasicUI();
+
+        SetCurrentHealth(1);
 
         isdead = false;
     }
@@ -488,14 +516,27 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    public float GetCurrentHealth()
+    public int GetCurrentHealth()
     {
         return currentHealth;
     }
 
 
-    public void SetCurrentHealth(float value)
+    public void SetCurrentHealth(int value)
     {
+        if (currentHealth > value)
+        {
+            GameObject instantiatedfloatingText = Instantiate(damageFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
+            instantiatedfloatingText.transform.SetParent(canvas);
+            instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = currentHealth - value;
+        }
+        else if (currentHealth < value)
+        {
+            GameObject instantiatedfloatingText = Instantiate(healFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
+            instantiatedfloatingText.transform.SetParent(canvas);
+            instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "+" + (value - currentHealth);
+        }
+
         currentHealth = value;
 
         if (currentHealth > GetMaxHealth())
@@ -511,9 +552,13 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    public void AddHealth(float amount)
+    public void AddHealth(int amount)
     {
         currentHealth += amount;
+
+        GameObject instantiatedfloatingText = Instantiate(healFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
+        instantiatedfloatingText.transform.SetParent(canvas);
+        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "+" + amount;
 
         if (currentHealth > GetMaxHealth())
         {
@@ -543,7 +588,7 @@ public class PlayerController : MonoBehaviour
     {
         while (Time.time < healEndTime)
         {
-            AddHealth(GetMaxHealth() * 0.05f);
+            AddHealth(Mathf.RoundToInt(GetMaxHealth() * 0.05f));
             healIconTimer.text = $"{Mathf.CeilToInt(healEndTime - Time.time)}s";
             yield return new WaitForSeconds(1f);
         }
@@ -553,25 +598,25 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    public float GetMaxHealth()
+    public int GetMaxHealth()
     {
         return maxHealth + tempMaxHealth;
     }
 
 
-    public float GetTemporaryHealth()
+    public int GetTemporaryHealth()
     {
         return tempMaxHealth;
     }
 
 
-    public void SetMaxHealth(float value)
+    public void SetMaxHealth(int value)
     {
         maxHealth = value;
     }
 
 
-    public void AddMaxHealth(float amount)
+    public void AddMaxHealth(int amount)
     {
         maxHealth += amount;
     }
@@ -646,6 +691,10 @@ public class PlayerController : MonoBehaviour
     {
         currentMana += amount;
 
+        GameObject instantiatedfloatingText = Instantiate(manaFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
+        instantiatedfloatingText.transform.SetParent(canvas);
+        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "+" + amount;
+
         if (currentMana > GetMaxMana())
         {
             currentMana = GetMaxMana();
@@ -670,31 +719,31 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    public float GetMaxMana()
+    public int GetMaxMana()
     {
         return maxMana + tempMaxMana;
     }
 
 
-    public float GetTemporaryMana()
+    public int GetTemporaryMana()
     {
         return tempMaxMana;
     }
 
 
-    public void SetMaxMana(float value)
+    public void SetMaxMana(int value)
     {
         maxMana = value;
     }
 
 
-    public void AddMaxMana(float amount)
+    public void AddMaxMana(int amount)
     {
         maxMana += amount;
     }
 
 
-    public void AddTempMaxMana(float additionalMaxMana, float duration)
+    public void AddTempMaxMana(int additionalMaxMana, float duration)
     {
         tempManaIcon.SetActive(true);
 
@@ -737,6 +786,10 @@ public class PlayerController : MonoBehaviour
         {
             StopCoroutine(freezeCoroutine);
         }
+
+        GameObject instantiatedfloatingText = Instantiate(frozenFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
+        instantiatedfloatingText.transform.SetParent(canvas);
+        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "Frozen";
 
         isFrozen = true;
         freezeIcon.SetActive(true);
