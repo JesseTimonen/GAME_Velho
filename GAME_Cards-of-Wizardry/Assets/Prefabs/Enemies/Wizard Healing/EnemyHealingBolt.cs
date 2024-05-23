@@ -32,15 +32,24 @@ public class EnemyHealingBolt : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Enemy") && !skipHit)
+        // Make sure the healing projectile doesn't immidiatly collide with the healing wizard
+        if (skipHit)
+        {
+            skipHit = false;
+            return;
+        }
+
+        if (collision.CompareTag("Enemy"))
         {
             EnemyStats enemy = collision.gameObject.GetComponent<EnemyStats>();
             enemy.AddHealth(Mathf.RoundToInt(Random.Range(minHeal, maxHeal) * GameManager.Instance.GetSurvivalModifier()));
-            Destroy(gameObject);
         }
-        else
+        else if (collision.CompareTag("Player"))
         {
-            skipHit = false;
+            PlayerController playerController = GameManager.Instance.GetPlayerController();
+            playerController.AddHealth(Mathf.RoundToInt(Random.Range(minHeal, maxHeal) * GameManager.Instance.GetSurvivalModifier()));
         }
+
+        Destroy(gameObject);
     }
 }
