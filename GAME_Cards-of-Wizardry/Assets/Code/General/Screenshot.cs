@@ -2,10 +2,9 @@
 using System.IO;
 using System;
 
-
 public class Screenshot : MonoBehaviour
 {
-    #if !UNITY_WEBGL
+#if !UNITY_WEBGL
     [Header("REFERENCES")]
     [SerializeField] private InputController inputController;
 
@@ -14,13 +13,10 @@ public class Screenshot : MonoBehaviour
     [SerializeField] private int detailMultiplier = 2;
     private string screenshotsFolder;
 
-
     private void Start()
     {
         InitializeScreenshotFolderPath();
-        EnsureScreenshotFolderExists();
     }
-
 
     private void Update()
     {
@@ -30,16 +26,21 @@ public class Screenshot : MonoBehaviour
         }
     }
 
-
     private void InitializeScreenshotFolderPath()
     {
-        screenshotsFolder = Path.Combine(
-            System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),
-            Application.productName,
-            "Screenshots"
-        );
-    }
+        string documentsPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+        string myGamesFolder = Path.Combine(documentsPath, "My Games");
 
+        // Check if "My Games" folder exists
+        if (Directory.Exists(myGamesFolder))
+        {
+            screenshotsFolder = Path.Combine(myGamesFolder, Application.productName, "Screenshots");
+        }
+        else
+        {
+            screenshotsFolder = Path.Combine(documentsPath, Application.productName, "Screenshots");
+        }
+    }
 
     private void EnsureScreenshotFolderExists()
     {
@@ -56,7 +57,6 @@ public class Screenshot : MonoBehaviour
         }
     }
 
-
     public void TakeScreenshot()
     {
         try
@@ -72,7 +72,6 @@ public class Screenshot : MonoBehaviour
         }
     }
 
-
     private string GetUniqueFilePath(string baseFileName)
     {
         int count = 1;
@@ -86,5 +85,5 @@ public class Screenshot : MonoBehaviour
 
         return Path.Combine(screenshotsFolder, fileName);
     }
-    #endif
+#endif
 }

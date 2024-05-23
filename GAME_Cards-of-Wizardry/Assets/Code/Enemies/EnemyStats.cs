@@ -28,7 +28,9 @@ public class EnemyStats : MonoBehaviour
     [SerializeField] private GameObject healFloatingPrefab;
     [SerializeField] private GameObject damageFloatingPrefab;
     [SerializeField] private GameObject fireFloatingPrefab;
-    [SerializeField] private GameObject frozenFloatingPrefab;
+    [SerializeField] private GameObject freezeFloatingPrefab;
+    [SerializeField] private GameObject absorbedFloatingPrefab;
+    [SerializeField] private GameObject reflectedFloatingPrefab;
 
     [HideInInspector] public Animator animator;
     private SpriteRenderer spriteRenderer;
@@ -52,8 +54,6 @@ public class EnemyStats : MonoBehaviour
     {
         if (isDead) return;
 
-        GameObject instantiatedfloatingText = InstantiateFloatingText(isFireDamage ? fireFloatingPrefab : damageFloatingPrefab);
-
         if (shieldHealth > 0)
         {
             shieldHealth -= amount;
@@ -61,7 +61,10 @@ public class EnemyStats : MonoBehaviour
             {
                 int overflowDamage = -shieldHealth;
                 health -= overflowDamage;
+
+                GameObject instantiatedfloatingText = InstantiateFloatingText(isFireDamage ? fireFloatingPrefab : damageFloatingPrefab);
                 instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = overflowDamage;
+
                 ReflectDamage(overflowDamage);
 
                 shieldHealth = 0;
@@ -69,15 +72,17 @@ public class EnemyStats : MonoBehaviour
             }
             else
             {
-                instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = 0;
+                InstantiateFloatingText(absorbedFloatingPrefab);
                 return;
             }
         }
         else
         {
+            GameObject instantiatedfloatingText = InstantiateFloatingText(isFireDamage ? fireFloatingPrefab : damageFloatingPrefab);
             instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = amount;
             int preDamageHealth = health;
             health -= amount;
+
             ReflectDamage(Mathf.Min(amount, preDamageHealth));
         }
 
@@ -123,8 +128,11 @@ public class EnemyStats : MonoBehaviour
         GameObject instantiatedfloatingText = InstantiateFloatingText(healFloatingPrefab);
         instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "+" + amount;
 
-        spriteRenderer.color = Color.green;
-        Invoke(nameof(ResetSpriteColor), 0.33f);
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.green;
+            Invoke(nameof(ResetSpriteColor), 0.33f);
+        }
     }
 
     public void SetHealth(int newHealth)
@@ -217,6 +225,7 @@ public class EnemyStats : MonoBehaviour
     private IEnumerator RemoveReflectAfterTime(float duration)
     {
         yield return new WaitForSeconds(duration);
+        reflectParticles.Stop();
         reflectIntensity = 0f;
     }
 
@@ -224,6 +233,7 @@ public class EnemyStats : MonoBehaviour
     {
         if (reflectIntensity > 0)
         {
+            InstantiateFloatingText(reflectedFloatingPrefab);
             GameManager.Instance.GetPlayerController().TakeDamage(Mathf.RoundToInt(damage * reflectIntensity));
         }
     }
@@ -234,8 +244,8 @@ public class EnemyStats : MonoBehaviour
     {
         if (isDead) return;
 
-        GameObject instantiatedfloatingText = InstantiateFloatingText(frozenFloatingPrefab);
-        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = freezeImmunity ? "Immune" : "Frozen";
+        GameObject instantiatedfloatingText = InstantiateFloatingText(freezeFloatingPrefab);
+        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = freezeImmunity ? "Immune" : "Freeze";
 
         if (freezeImmunity) return;
 

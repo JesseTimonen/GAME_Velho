@@ -11,7 +11,7 @@ public class Heal : MonoBehaviour
         Transform player = GameManager.Instance.GetPlayerTransform();
         PlayerController playerController = GameManager.Instance.GetPlayerController();
 
-        transform.position = player.position;
+        transform.position = player.position + new Vector3(0.15f, 0, 0);
         transform.SetParent(player);
 
         if (maximumHealthIncreas > 0)
