@@ -153,7 +153,7 @@ public class BossStageOne : MonoBehaviour
 
     private void CheckEnrageMode()
     {
-        if (!isEnraged && !isTeleporting && stats.health <= stats.maxHealth * enrageThreshold)
+        if (!isEnraged && !isTeleporting && stats.GetHealth() <= stats.GetMaxHealth() * enrageThreshold)
         {
             isEnraged = true;
 

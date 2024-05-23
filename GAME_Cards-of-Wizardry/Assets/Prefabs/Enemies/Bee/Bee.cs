@@ -69,7 +69,7 @@ public class Bee : MonoBehaviour
 
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-        if (!isEnraged && stats.health <= stats.maxHealth * 0.33f)
+        if (!isEnraged && stats.GetHealth() <= stats.GetMaxHealth() * 0.33f)
         {
             isEnraged = true;
 

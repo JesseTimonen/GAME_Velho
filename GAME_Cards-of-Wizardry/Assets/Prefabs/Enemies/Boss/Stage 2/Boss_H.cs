@@ -53,7 +53,7 @@ public class Boss_H : BossStageTwo
 
         if (enemies.Count > 0)
         {
-            var lowestHealthEnemy = enemies.OrderBy(e => e.GetComponent<EnemyStats>().health / e.GetComponent<EnemyStats>().maxHealth).First();
+            var lowestHealthEnemy = enemies.OrderBy(e => e.GetComponent<EnemyStats>().GetHealth() / e.GetComponent<EnemyStats>().GetMaxHealth()).First();
 
             if (lowestHealthEnemy != null)
             {

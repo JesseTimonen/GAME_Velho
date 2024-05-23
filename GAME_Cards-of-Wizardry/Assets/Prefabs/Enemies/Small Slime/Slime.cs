@@ -50,9 +50,8 @@ public class Slime : MonoBehaviour
         {
             float sizeModifier = Random.Range(sizeModifierMin, sizeModifierMax);
             transform.localScale = new Vector3(sizeModifier, sizeModifier, sizeModifier);
-            stats.maxHealth = Mathf.RoundToInt(stats.maxHealth * sizeModifier);
-            stats.health = stats.maxHealth;
-            stats.experienceGain = Mathf.RoundToInt(stats.experienceGain * sizeModifier);
+            stats.SetMaxHealth(Mathf.RoundToInt(stats.GetMaxHealth() * sizeModifier));
+            stats.SetHealth(stats.GetMaxHealth());
             minDamage = Mathf.RoundToInt(minDamage * sizeModifier);
             maxDamage = Mathf.RoundToInt(maxDamage * sizeModifier);
         }

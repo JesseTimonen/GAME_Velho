@@ -1,24 +1,30 @@
-using DamageNumbersPro;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using DamageNumbersPro;
+using System.Collections;
+using System.Collections.Generic;
 
 public class EnemyStats : MonoBehaviour
 {
-    public int maxHealth = 100;
-    public int health = 100;
-    public int shieldHealth = 0;
-    public int experienceGain = 50;
+    [Header("Stats")]
+    [SerializeField] private int maxHealth = 100;
+    [SerializeField] private int health = 100;
+    [SerializeField] private int shieldHealth = 0;
+    [SerializeField] private int experienceGain = 50;
     [SerializeField] private bool fireImmunity = false;
     [SerializeField] private bool freezeImmunity = false;
 
-    [SerializeField] private ParticleSystem flameParticles;
+    [Header("Particles")]
+    [SerializeField] private ParticleSystem burningParticles;
     [SerializeField] private ParticleSystem shieldParticles;
+    [SerializeField] private ParticleSystem reflectParticles;
 
     [Header("UI")]
     [SerializeField] private Transform canvas;
     [SerializeField] private GameObject healthBar;
     [SerializeField] private Slider healthBarSlider;
+
+    [Header("Floating Damage Numbers")]
     [SerializeField] private GameObject healFloatingPrefab;
     [SerializeField] private GameObject damageFloatingPrefab;
     [SerializeField] private GameObject fireFloatingPrefab;
@@ -27,24 +33,15 @@ public class EnemyStats : MonoBehaviour
     [HideInInspector] public Animator animator;
     private SpriteRenderer spriteRenderer;
     private LevelUpManager levelUpManager;
-
-    private Coroutine burnCoroutine;
-    private Coroutine reflectCoroutine;
-    private Coroutine freezeCoroutine;
-    private Coroutine shieldCoroutine;
-    private float burnEndTime;
+    private Dictionary<string, Coroutine> activeCoroutines = new Dictionary<string, Coroutine>();
     private bool isDead = false;
     private bool isFrozen = false;
     private float reflectIntensity = 0f;
 
-    private void Awake()
+    private void Start()
     {
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-    }
-
-    private void Start()
-    {
         levelUpManager = GameManager.Instance.GetLevelUpManager();
 
         maxHealth = Mathf.RoundToInt(maxHealth * GameManager.Instance.GetSurvivalModifier());
@@ -55,50 +52,33 @@ public class EnemyStats : MonoBehaviour
     {
         if (isDead) return;
 
-        GameObject instantiatedfloatingText;
-
-        if (isFireDamage)
-        {
-            instantiatedfloatingText = Instantiate(fireFloatingPrefab, healthBar.transform.position, Quaternion.identity);
-        }
-        else
-        {
-            instantiatedfloatingText = Instantiate(damageFloatingPrefab, healthBar.transform.position, Quaternion.identity);
-        }
-
-        instantiatedfloatingText.transform.SetParent(canvas);
+        GameObject instantiatedfloatingText = InstantiateFloatingText(isFireDamage ? fireFloatingPrefab : damageFloatingPrefab);
 
         if (shieldHealth > 0)
         {
             shieldHealth -= amount;
             if (shieldHealth <= 0)
             {
-                // Some damage went through the shield
-                health -= shieldHealth;
-                instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = shieldHealth;
-                ReflectDamage(Mathf.RoundToInt(shieldHealth * -1f));
+                int overflowDamage = -shieldHealth;
+                health -= overflowDamage;
+                instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = overflowDamage;
+                ReflectDamage(overflowDamage);
 
-                shieldParticles.Stop();
                 shieldHealth = 0;
+                shieldParticles.Stop();
             }
             else
             {
                 instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = 0;
+                return;
             }
         }
         else
         {
             instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = amount;
+            int preDamageHealth = health;
             health -= amount;
-
-            int relfectAmount = amount;
-
-            if (health - amount < 0)
-            {
-                relfectAmount = health;
-            }
-
-            ReflectDamage(relfectAmount);
+            ReflectDamage(Mathf.Min(amount, preDamageHealth));
         }
 
         UpdateHealthBar();
@@ -109,42 +89,6 @@ public class EnemyStats : MonoBehaviour
         if (health <= 0 && !isDead)
         {
             Die();
-        }
-    }
-
-    public void AddHealth(int amount)
-    {
-        health = Mathf.Min(health + amount, maxHealth);
-        UpdateHealthBar();
-
-        GameObject instantiatedfloatingText = Instantiate(healFloatingPrefab, healthBar.transform.position, Quaternion.identity);
-        instantiatedfloatingText.transform.SetParent(canvas);
-        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "+" + amount;
-
-        spriteRenderer.color = Color.green;
-        Invoke(nameof(ResetSpriteColor), 0.33f);
-    }
-
-    private void UpdateHealthBar()
-    {
-        if (!healthBar.activeSelf)
-        {
-            healthBar.SetActive(true);
-        }
-
-        healthBarSlider.maxValue = Mathf.Ceil(maxHealth);
-        healthBarSlider.value = Mathf.Ceil(health);
-    }
-
-    private void ResetSpriteColor()
-    {
-        if (isFrozen)
-        {
-            spriteRenderer.color = Color.blue;
-        }
-        else
-        {
-            spriteRenderer.color = Color.white;
         }
     }
 
@@ -161,29 +105,62 @@ public class EnemyStats : MonoBehaviour
         return !isDead;
     }
 
-    public bool IsFrozen()
+    private void ResetSpriteColor()
     {
-        return isFrozen;
+        spriteRenderer.color = isFrozen ? Color.blue : Color.white;
     }
 
+    public void AddHealth(int amount)
+    {
+        health = Mathf.Min(health + amount, maxHealth);
+        UpdateHealthBar();
+
+        GameObject instantiatedfloatingText = InstantiateFloatingText(healFloatingPrefab);
+        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "+" + amount;
+
+        spriteRenderer.color = Color.green;
+        Invoke(nameof(ResetSpriteColor), 0.33f);
+    }
+
+    public void SetHealth(int newHealth)
+    {
+        health += Mathf.Min(newHealth, maxHealth);
+    }
+
+    public int GetHealth()
+    {
+        return health;
+    }
+
+    public int GetMaxHealth()
+    {
+        return maxHealth;
+    }
+
+    public void SetMaxHealth(int newMaxHealth)
+    {
+        maxHealth = newMaxHealth;
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (!healthBar.activeSelf)
+        {
+            healthBar.SetActive(true);
+        }
+
+        healthBarSlider.maxValue = maxHealth;
+        healthBarSlider.value = health;
+    }
+
+    #region Shield
     public void AddShield(int shieldAmount, float duration)
     {
-        if (shieldHealth < shieldAmount)
-        {
-            shieldHealth = shieldAmount;
-        }
+        if (shieldParticles == null) return;
 
-        if (!shieldParticles.isPlaying)
-        {
-            shieldParticles.Play();
-        }
-
-        if (shieldCoroutine != null)
-        {
-            StopCoroutine(shieldCoroutine);
-        }
-
-        shieldCoroutine = StartCoroutine(RemoveShieldAfterTime(duration));
+        shieldHealth = Mathf.Max(shieldHealth, shieldAmount);
+        shieldParticles.Play();
+        StartOrRestartCoroutine("shield", RemoveShieldAfterTime(duration));
     }
 
     private IEnumerator RemoveShieldAfterTime(float duration)
@@ -191,105 +168,99 @@ public class EnemyStats : MonoBehaviour
         yield return new WaitForSeconds(duration);
         shieldHealth = 0;
         shieldParticles.Stop();
-        shieldCoroutine = null;
     }
+    #endregion
 
+    #region Burn
     public void SetOnFire(float duration)
     {
-        if (fireImmunity) return;
+        if (fireImmunity || burningParticles == null) return;
 
-        if (!flameParticles.isPlaying)
-        {
-            flameParticles.Play();
-        }
-
-        duration = duration / GameManager.Instance.GetSurvivalModifier();
-
-        if (burnCoroutine != null)
-        {
-            burnEndTime = Mathf.Max(burnEndTime, Time.time + duration);
-        }
-        else
-        {
-            burnEndTime = Time.time + duration;
-            burnCoroutine = StartCoroutine(ApplyBurn());
-        }
+        burningParticles.Play();
+        duration /= GameManager.Instance.GetSurvivalModifier();
+        StartOrRestartCoroutine("burn", ApplyBurn(duration));
     }
 
-    private IEnumerator ApplyBurn()
+    private IEnumerator ApplyBurn(float duration)
     {
+        float burnEndTime = Time.time + duration;
+
         while (Time.time < burnEndTime)
         {
             TakeDamage(10, true);
             yield return new WaitForSeconds(1f);
         }
 
-        burnCoroutine = null;
-        flameParticles.Stop();
+        burningParticles.Stop();
     }
+    #endregion
 
+    #region Reflect
     public void AddReflect(float intensity, float duration)
     {
-        if (reflectCoroutine != null)
-        {
-            if (intensity < reflectIntensity)
-            {
-                return;
-            }
+        if (reflectParticles == null) return;
 
-            StopCoroutine(reflectCoroutine);
-        }
-
-        reflectIntensity = intensity;
-        reflectCoroutine = StartCoroutine(RemoveReflectAfterTime(duration));
+        reflectIntensity = Mathf.Max(reflectIntensity, intensity);
+        reflectParticles.Play();
+        StartOrRestartCoroutine("reflect", RemoveReflectAfterTime(duration));
     }
-
 
     private IEnumerator RemoveReflectAfterTime(float duration)
     {
         yield return new WaitForSeconds(duration);
         reflectIntensity = 0f;
-        reflectCoroutine = null;
     }
-
 
     private void ReflectDamage(int damage)
     {
         if (reflectIntensity > 0)
         {
-            int reflectDamage = Mathf.CeilToInt(damage * reflectIntensity);
-            GameManager.Instance.GetPlayerController().TakeDamage(reflectDamage);
+            GameManager.Instance.GetPlayerController().TakeDamage(Mathf.RoundToInt(damage * reflectIntensity));
         }
     }
+    #endregion
 
+    #region Freeze
     public void Freeze(float duration)
     {
-        GameObject instantiatedfloatingText = Instantiate(frozenFloatingPrefab, healthBar.transform.position, Quaternion.identity);
-        instantiatedfloatingText.transform.SetParent(canvas);
+        GameObject instantiatedfloatingText = InstantiateFloatingText(frozenFloatingPrefab);
+        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = freezeImmunity ? "Immune" : "Frozen";
 
-        if (freezeImmunity)
-        {
-            instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "Immune";
-            return;
-        }
-
-        instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "Frozen";
-
-        if (freezeCoroutine != null)
-        {
-            StopCoroutine(freezeCoroutine);
-        }
+        if (freezeImmunity) return;
 
         spriteRenderer.color = Color.blue;
         isFrozen = true;
-        freezeCoroutine = StartCoroutine(UnfreezeAfterTime(duration / GameManager.Instance.GetSurvivalModifier()));
+
+        StartOrRestartCoroutine("freeze", UnfreezeAfterTime(duration / GameManager.Instance.GetSurvivalModifier()));
     }
 
     private IEnumerator UnfreezeAfterTime(float duration)
     {
         yield return new WaitForSeconds(duration);
-        freezeCoroutine = null;
         isFrozen = false;
         ResetSpriteColor();
+    }
+
+    public bool IsFrozen()
+    {
+        return isFrozen;
+    }
+    #endregion
+
+    private GameObject InstantiateFloatingText(GameObject prefab)
+    {
+        GameObject instantiatedfloatingText = Instantiate(prefab, healthBar.transform.position, Quaternion.identity);
+        instantiatedfloatingText.transform.SetParent(canvas);
+        return instantiatedfloatingText;
+    }
+
+    private void StartOrRestartCoroutine(string key, IEnumerator coroutine)
+    {
+        if (activeCoroutines.ContainsKey(key))
+        {
+            StopCoroutine(activeCoroutines[key]);
+        }
+
+        activeCoroutines[key] = StartCoroutine(coroutine);
     }
 }

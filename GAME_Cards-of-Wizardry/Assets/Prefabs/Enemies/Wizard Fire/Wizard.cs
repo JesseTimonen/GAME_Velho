@@ -39,7 +39,6 @@ public class Wizard : MonoBehaviour
     [Header("Fire Wizard Attributes")]
     public GameObject fireballPrefab;
     public GameObject smallFireballPrefab;
-    public ParticleSystem fireRing;
     public float reflectDuration = 10f;
     public float reflectIntensity = 0.25f;
     private float fireballTimer;
@@ -82,7 +81,7 @@ public class Wizard : MonoBehaviour
         {
             float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-            if (!survivalSkillUsed && stats.health <= stats.maxHealth * survivalSkillHealthThreshold)
+            if (!survivalSkillUsed && stats.GetHealth() <= stats.GetMaxHealth() * survivalSkillHealthThreshold)
             {
                 ActivateSurvivalSkill();
                 survivalSkillUsed = true;
@@ -249,7 +248,7 @@ public class Wizard : MonoBehaviour
                 EnemyStats enemyStats = hitCollider.GetComponent<EnemyStats>();
                 if (enemyStats != null)
                 {
-                    float healthPercentage = enemyStats.health / enemyStats.maxHealth;
+                    float healthPercentage = enemyStats.GetHealth() / enemyStats.GetMaxHealth();
                     if (healthPercentage < lowestHealthPercentage)
                     {
                         lowestHealthPercentage = healthPercentage;
@@ -306,10 +305,10 @@ public class Wizard : MonoBehaviour
         switch (wizardType)
         {
             case WizardType.Fire:
-                StartCoroutine(ActivateFireRing());
+                stats.AddReflect(reflectIntensity, reflectDuration);
                 break;
             case WizardType.Healing:
-                stats.AddHealth(Mathf.FloorToInt(stats.maxHealth * healingSurvivalHealAmount));
+                stats.AddHealth(Mathf.FloorToInt(stats.GetHealth() * healingSurvivalHealAmount));
                 StartCoroutine(RunAwayFromPlayer(healingSurvivalRunDuration));
                 break;
             case WizardType.Shielding:
@@ -317,16 +316,6 @@ public class Wizard : MonoBehaviour
                 break;
         }
     }
-
-
-    private IEnumerator ActivateFireRing()
-    {
-        fireRing.Play();
-        stats.AddReflect(reflectIntensity, reflectDuration);
-        yield return new WaitForSeconds(reflectDuration);
-        fireRing.Stop();
-    }
-
 
     private IEnumerator RunAwayFromPlayer(float duration)
     {
@@ -406,7 +395,6 @@ public class WizardEditor : Editor
                 EditorGUILayout.LabelField("Fire Wizard Attributes", EditorStyles.boldLabel);
                 script.fireballPrefab = (GameObject)EditorGUILayout.ObjectField("Fireball Prefab", script.fireballPrefab, typeof(GameObject), false);
                 script.smallFireballPrefab = (GameObject)EditorGUILayout.ObjectField("Small Fireball Prefab", script.smallFireballPrefab, typeof(GameObject), false);
-                script.fireRing = (ParticleSystem)EditorGUILayout.ObjectField("Fire Ring", script.fireRing, typeof(ParticleSystem), true);
                 script.reflectDuration = EditorGUILayout.FloatField("Reflect Duration", script.reflectDuration);
                 script.reflectIntensity = EditorGUILayout.Slider("Reflect Intensity", script.reflectIntensity, 0f, 1f);
                 break;
