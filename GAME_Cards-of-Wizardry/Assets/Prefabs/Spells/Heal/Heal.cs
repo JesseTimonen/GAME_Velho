@@ -1,12 +1,10 @@
 using UnityEngine;
 
-
 public class Heal : MonoBehaviour
 {
     public int initialHeal = 0;
     public float healOverTimeDuration = 5;
     public int maximumHealthIncreas = 0;
-
 
     public void Start()
     {
@@ -16,9 +14,9 @@ public class Heal : MonoBehaviour
         transform.position = player.position;
         transform.SetParent(player);
 
-        if (healOverTimeDuration > 0)
+        if (maximumHealthIncreas > 0)
         {
-            playerController.AddHealthOverTime(healOverTimeDuration);
+            playerController.AddTempMaxHealth(maximumHealthIncreas, healOverTimeDuration);
         }
 
         if (initialHeal > 0)
@@ -26,15 +24,14 @@ public class Heal : MonoBehaviour
             playerController.AddHealth(initialHeal);
         }
 
-        if (maximumHealthIncreas > 0)
+        if (healOverTimeDuration > 0)
         {
-            playerController.AddTempMaxHealth(maximumHealthIncreas, healOverTimeDuration);
-            // playerController.AddHealth(maximumHealthIncreas);
+            playerController.AddHealthOverTime(healOverTimeDuration);
         }
 
-        Invoke("DestroyGameObject", 2f);
+        // Give time for audio to play
+        Invoke(nameof(DestroyGameObject), 5f);
     }
-
 
     private void DestroyGameObject()
     {

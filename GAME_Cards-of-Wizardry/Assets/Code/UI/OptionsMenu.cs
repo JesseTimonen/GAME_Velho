@@ -114,7 +114,7 @@ public class OptionsMenu : MonoBehaviour
 
         isOpen = false;
 
-        Invoke("CloseUIPanelReference", 0.1f);
+        Invoke(nameof(CloseUIPanelReference), 0.1f);
     }
 
 

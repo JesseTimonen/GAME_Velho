@@ -24,9 +24,9 @@ public class FireVolley : MonoBehaviour
             fireball.GetComponent<FireBall>().SetDirection(direction);
         }
 
-        Invoke(nameof(DestroyGameObject), 3f);
+        // Give time for audio to play
+        Invoke(nameof(DestroyGameObject), 5f);
     }
-
 
     private void DestroyGameObject()
     {

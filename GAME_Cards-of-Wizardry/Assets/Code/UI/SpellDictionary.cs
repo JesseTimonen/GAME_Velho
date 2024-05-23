@@ -120,7 +120,7 @@ public class SpellDictionary : MonoBehaviour
 
         isOpen = false;
 
-        Invoke("CloseUIPanelReference", 0.1f);
+        Invoke(nameof(CloseUIPanelReference), 0.1f);
     }
 
     private void CloseUIPanelReference()

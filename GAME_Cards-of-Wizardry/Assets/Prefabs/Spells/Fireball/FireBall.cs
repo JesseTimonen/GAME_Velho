@@ -27,7 +27,6 @@ public class FireBall : MonoBehaviour
     private bool hasExploded = false;
     private HashSet<EnemyStats> damagedEnemies = new HashSet<EnemyStats>();
 
-
     private void Start()
     {
         audioSource = GetComponent<AudioSource>();
@@ -112,7 +111,7 @@ public class FireBall : MonoBehaviour
         }
 
         hasExploded = true;
-        CancelInvoke();
+        CancelInvoke(nameof(DestroyGameObject));
         StartCoroutine(AnimateLightAndDestroy());
     }
 
@@ -159,12 +158,12 @@ public class FireBall : MonoBehaviour
             yield return null;
         }
 
-        // Give time for audio to finish
         spriteRenderer.enabled = false;
         light2D.enabled = false;
+
+        // Give time for audio to play
         Destroy(gameObject, 2f);
     }
-
 
     private void DestroyGameObject()
     {

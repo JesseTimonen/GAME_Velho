@@ -99,7 +99,7 @@ public class EnemyStats : MonoBehaviour
         levelUpManager.AddExperience(experienceGain);
         animator.SetTrigger("Die");
 
-        StopAllCoroutines();
+        StopAllCustomCoroutines();
         StopAllParticles();
     }
 
@@ -275,7 +275,7 @@ public class EnemyStats : MonoBehaviour
         activeCoroutines[key] = StartCoroutine(coroutine);
     }
 
-    private void StopAllCoroutines()
+    private void StopAllCustomCoroutines()
     {
         foreach (var coroutine in activeCoroutines.Values)
         {
@@ -301,5 +301,11 @@ public class EnemyStats : MonoBehaviour
         {
             reflectParticles.Stop();
         }
+    }
+
+    // Called from animation event
+    public void DestroyGameObject()
+    {
+        Destroy(gameObject);
     }
 }

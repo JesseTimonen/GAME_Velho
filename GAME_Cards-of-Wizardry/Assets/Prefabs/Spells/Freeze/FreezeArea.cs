@@ -2,7 +2,6 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-
 public class FreezeArea : MonoBehaviour
 {
     [Header("Stats")]
@@ -21,11 +20,9 @@ public class FreezeArea : MonoBehaviour
     private float finalFade = 0.0f;
     private float initialBorderThickness = 0.2f;
     private float finalBorderThickness = 1.0f;
-
     private Renderer ShaderRenderer;
     private Light2D light2D;
     private float startTime;
-
 
     private void Start()
     {
@@ -35,7 +32,6 @@ public class FreezeArea : MonoBehaviour
 
         StartCoroutine(AnimateDissolveEffect());
     }
-
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -83,8 +79,6 @@ public class FreezeArea : MonoBehaviour
             }
         }
     }
-
-
 
     private IEnumerator AnimateDissolveEffect()
     {

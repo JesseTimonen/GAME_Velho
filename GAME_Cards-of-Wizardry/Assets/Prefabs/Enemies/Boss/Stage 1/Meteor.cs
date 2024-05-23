@@ -1,19 +1,16 @@
 using System.Collections;
 using UnityEngine;
 
-
 public class Meteor : MonoBehaviour
 {
     [SerializeField] private GameObject timerCircle;
     [SerializeField] private float warningDuration = 2f;
     [SerializeField] private GameObject explosionPrefab;
 
-
     private void Start()
     {
         StartCoroutine(WarningAndExplosionSequence());
     }
-
 
     private IEnumerator WarningAndExplosionSequence()
     {
@@ -28,6 +25,7 @@ public class Meteor : MonoBehaviour
             elapsed += Time.deltaTime;
             yield return null;
         }
+
         timerCircle.transform.localScale = Vector3.one;
 
         // Instantiate the explosion and destroy the meteor

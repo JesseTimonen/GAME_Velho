@@ -30,8 +30,8 @@ public class ResetSpells : MonoBehaviour
             }
         }
 
-        // Give audio source time to play spell audio
-        Invoke(nameof(DestroyGameObject), 3f);
+        // Give time for audio to play
+        Invoke(nameof(DestroyGameObject), 5f);
     }
 
     private void DestroyGameObject()

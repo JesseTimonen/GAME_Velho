@@ -1,6 +1,4 @@
 using UnityEngine;
-
-
 public class Boss_O : BossStageTwo
 {
     [Header("Iceball Attack")]
@@ -15,14 +13,12 @@ public class Boss_O : BossStageTwo
     [SerializeField] private int shieldAmount = 300;
     private float shieldTimer;
 
-
     protected override void Start()
     {
         base.Start();
         iceballTimer = iceballCooldown;
         shieldTimer = shieldCooldown;
     }
-
 
     protected override void HandleAbilities()
     {
@@ -42,14 +38,12 @@ public class Boss_O : BossStageTwo
         }
     }
 
-
     private void LaunchIceball()
     {
         GameObject iceball = Instantiate(iceballPrefab, transform.position, Quaternion.identity);
         Vector2 direction = (player.position - iceball.transform.position).normalized;
         iceball.GetComponent<EnemyIceball>().SetDirection(direction);
     }
-
 
     private void ShieldAllNearbyEnemies()
     {

@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 
-
 public class Boss_L : BossStageTwo
 {
     [Header("Meteor Shower Attack")]
@@ -12,13 +11,11 @@ public class Boss_L : BossStageTwo
     [SerializeField] private float meteorSpawnRadius = 10f;
     private float meteorShowerTimer;
 
-
     protected override void Start()
     {
         base.Start();
         meteorShowerTimer = meteorShowerCooldown;
     }
-
 
     protected override void HandleAbilities()
     {
@@ -30,7 +27,6 @@ public class Boss_L : BossStageTwo
             meteorShowerTimer = meteorShowerCooldown;
         }
     }
-
 
     private IEnumerator LaunchMeteorShower()
     {
@@ -44,7 +40,6 @@ public class Boss_L : BossStageTwo
             elapsed += interval;
         }
     }
-
 
     private void SpawnMeteor()
     {

@@ -7,7 +7,7 @@ public class Bee : MonoBehaviour
     private Transform player;
     private Rigidbody2D rb;
     private Animator animator;
-    private Renderer renderer;
+    private Renderer materialRenderer;
 
     public enum BeeState { Searching, Aggressive }
     public BeeState currentState = BeeState.Searching;
@@ -52,7 +52,7 @@ public class Bee : MonoBehaviour
         animator = GetComponent<Animator>();
         stats = GetComponent<EnemyStats>();
         rb = GetComponent<Rigidbody2D>();
-        renderer = GetComponent<Renderer>();
+        materialRenderer = GetComponent<Renderer>();
     }
 
     private void Start()
@@ -87,7 +87,7 @@ public class Bee : MonoBehaviour
     private void EnterEnragedState()
     {
         isEnraged = true;
-        renderer.material = enrageMaterial;
+        materialRenderer.material = enrageMaterial;
     }
 
     private void HandleSearchingState(float distanceToPlayer)
@@ -245,11 +245,5 @@ public class Bee : MonoBehaviour
     {
         GameObject projectile = Instantiate(projectilePrefab, projectileSpawnPoint.position, Quaternion.identity);
         projectile.GetComponent<EnemyFireball>().SetDirection(direction);
-    }
-
-    // Called from animation event
-    public void DestroyGameObject()
-    {
-        Destroy(gameObject);
     }
 }

@@ -1,7 +1,6 @@
 using System.Linq;
 using UnityEngine;
 
-
 public class Boss_H : BossStageTwo
 {
     [Header("Healing Bolt")]
@@ -16,14 +15,12 @@ public class Boss_H : BossStageTwo
     [SerializeField] private float healBurstRadius = 10f;
     private float healBurstTimer;
 
-
     protected override void Start()
     {
         base.Start();
         healBurstTimer = healBurstCooldown;
         healBoltTimer = healBoltCooldown;
     }
-
 
     protected override void HandleAbilities()
     {
@@ -42,7 +39,6 @@ public class Boss_H : BossStageTwo
             healBurstTimer = healBurstCooldown;
         }
     }
-
 
     private void HealLowestHealthEnemy()
     {
@@ -63,7 +59,6 @@ public class Boss_H : BossStageTwo
             }
         }
     }
-
 
     private void HealAllNearbyEnemies()
     {

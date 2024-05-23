@@ -3,6 +3,12 @@ using UnityEngine;
 
 public class BossStageOne : MonoBehaviour
 {
+    private EnemyStats stats;
+    private Transform player;
+    private Rigidbody2D rb;
+    private Animator animator;
+    private BoxCollider2D boxCollider;
+
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private float closestRadius = 3f;
@@ -64,12 +70,7 @@ public class BossStageOne : MonoBehaviour
     [SerializeField] protected Material outlineMaterial;
     [SerializeField] protected float dissolveSpeed = 3f;
     [SerializeField] protected float materialSwapSpeed = 5f;
-
-    private EnemyStats stats;
-    private Transform player;
-    private Rigidbody2D rb;
-    private Animator animator;
-    private BoxCollider2D boxCollider;
+    private Renderer materialRenderer;
 
     [Header("Phase 2 Bosses")]
     [SerializeField] private GameObject boss_V;
@@ -90,20 +91,14 @@ public class BossStageOne : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         boxCollider = GetComponent<BoxCollider2D>();
-        dissolveMaterial = GetComponent<Renderer>().material;
+        materialRenderer = GetComponent<Renderer>();
     }
 
     private void Start()
     {
         player = GameManager.Instance.GetPlayerTransform();
 
-        fireballTimer = fireballCooldown;
-        shotgunTimer = shotgunCooldown;
-        reflectTimer = reflectCooldown;
-        shieldTimer = shieldCooldown;
-        meteorShowerTimer = meteorShowerCooldown;
-        healTimer = healCooldown;
-        teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
+        ResetTimers();
 
         originalFurthestRadius = furthestRadius;
 
@@ -151,14 +146,23 @@ public class BossStageOne : MonoBehaviour
         FlipGameObject();
     }
 
+    private void ResetTimers()
+    {
+        fireballTimer = fireballCooldown;
+        shotgunTimer = shotgunCooldown;
+        reflectTimer = reflectCooldown;
+        shieldTimer = shieldCooldown;
+        meteorShowerTimer = meteorShowerCooldown;
+        healTimer = healCooldown;
+        teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
+    }
+
     private void CheckEnrageMode()
     {
         if (!isEnraged && !isTeleporting && stats.GetHealth() <= stats.GetMaxHealth() * enrageThreshold)
         {
             isEnraged = true;
-
-            Renderer renderer = GetComponent<Renderer>();
-            renderer.material = outlineMaterial;
+            materialRenderer.material = outlineMaterial;
         }
     }
 
@@ -329,29 +333,30 @@ public class BossStageOne : MonoBehaviour
 
     private IEnumerator DissolveEffect(bool isAppearing)
     {
-        Renderer renderer = GetComponent<Renderer>();
-
         if (isEnraged)
         {
+            float outlineThickness = isAppearing ? 0f : 0.4f;
+            float dissolveValue = isAppearing ? 0f : 1f;
+            float outlineStep = Time.unscaledDeltaTime * materialSwapSpeed * (isAppearing ? 1 : -1);
+            float dissolveStep = Time.unscaledDeltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
+
             if (!isAppearing)
             {
                 // Step 1: Outline _Thickness from 0.4 to 0
-                float outlineThickness = 0.4f;
                 while (outlineThickness > 0f)
                 {
-                    outlineThickness -= Time.unscaledDeltaTime * materialSwapSpeed;
-                    outlineMaterial.SetFloat("_Thickness", Mathf.Clamp(outlineThickness, 0f, 0.4f));
+                    outlineThickness = Mathf.Max(0f, outlineThickness - outlineStep);
+                    outlineMaterial.SetFloat("_Thickness", outlineThickness);
                     yield return null;
                 }
 
                 // Step 2: Change material to dissolve
-                renderer.material = dissolveMaterial;
+                materialRenderer.material = dissolveMaterial;
 
                 // Step 3: Dissolve _Fade goes from 1 to 0
-                float dissolveValue = 1f;
                 while (dissolveValue > 0f)
                 {
-                    dissolveValue -= Time.unscaledDeltaTime * dissolveSpeed;
+                    dissolveValue = Mathf.Max(0f, dissolveValue - dissolveStep);
                     dissolveMaterial.SetFloat("_Fade", dissolveValue);
                     yield return null;
                 }
@@ -359,23 +364,21 @@ public class BossStageOne : MonoBehaviour
             else
             {
                 // Step 5: Dissolve _Fade goes from 0 to 1
-                float dissolveValue = 0f;
                 while (dissolveValue < 1f)
                 {
-                    dissolveValue += Time.unscaledDeltaTime * dissolveSpeed;
+                    dissolveValue = Mathf.Min(1f, dissolveValue + dissolveStep);
                     dissolveMaterial.SetFloat("_Fade", dissolveValue);
                     yield return null;
                 }
 
                 // Step 6: Change material to outline
-                renderer.material = outlineMaterial;
+                materialRenderer.material = outlineMaterial;
 
                 // Step 7: Outline _Thickness from 0 to 0.4
-                float outlineThickness = 0f;
                 while (outlineThickness < 0.4f)
                 {
-                    outlineThickness += Time.unscaledDeltaTime * materialSwapSpeed;
-                    outlineMaterial.SetFloat("_Thickness", Mathf.Clamp(outlineThickness, 0f, 0.4f));
+                    outlineThickness = Mathf.Min(0.4f, outlineThickness + outlineStep);
+                    outlineMaterial.SetFloat("_Thickness", outlineThickness);
                     yield return null;
                 }
             }
@@ -384,20 +387,19 @@ public class BossStageOne : MonoBehaviour
         {
             // Non-enraged dissolve effect
             float dissolveValue = isAppearing ? 0f : 1f;
-            float endValue = isAppearing ? 1f : 0f;
+            float targetDissolveValue = isAppearing ? 1f : 0f;
             float step = Time.unscaledDeltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
 
-            while ((isAppearing && dissolveValue < endValue) || (!isAppearing && dissolveValue > endValue))
+            while ((isAppearing && dissolveValue < targetDissolveValue) || (!isAppearing && dissolveValue > targetDissolveValue))
             {
-                dissolveValue += step;
+                dissolveValue = Mathf.Clamp(dissolveValue + step, 0f, 1f);
                 dissolveMaterial.SetFloat("_Fade", dissolveValue);
                 yield return null;
             }
 
-            dissolveMaterial.SetFloat("_Fade", endValue);
+            dissolveMaterial.SetFloat("_Fade", targetDissolveValue);
         }
     }
-
 
     private void FlipGameObject()
     {
@@ -414,26 +416,21 @@ public class BossStageOne : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, furthestRadius);
     }
 
-    public void DestroyGameobject()
+    // Called from animation event
+    public void InitializePhaseTwo()
     {
-        float spawnRadius = 5f;
-
-        boss_V.SetActive(true);
-        boss_V.transform.position = GetRandomPositionInBox(transform.position, spawnRadius, spawnRadius);
-
-        boss_E.SetActive(true);
-        boss_E.transform.position = GetRandomPositionInBox(transform.position, spawnRadius, spawnRadius);
-
-        boss_L.SetActive(true);
-        boss_L.transform.position = GetRandomPositionInBox(transform.position, spawnRadius, spawnRadius);
-
-        boss_H.SetActive(true);
-        boss_H.transform.position = GetRandomPositionInBox(transform.position, spawnRadius, spawnRadius);
-
-        boss_O.SetActive(true);
-        boss_O.transform.position = GetRandomPositionInBox(transform.position, spawnRadius, spawnRadius);
-
+        ActivateMiniBoss(boss_V);
+        ActivateMiniBoss(boss_E);
+        ActivateMiniBoss(boss_L);
+        ActivateMiniBoss(boss_H);
+        ActivateMiniBoss(boss_O);
         Destroy(gameObject);
+    }
+
+    private void ActivateMiniBoss(GameObject boss)
+    {
+        boss.SetActive(true);
+        boss.transform.position = GetRandomPositionInBox(transform.position, 5f, 5f);
     }
 
     private Vector2 GetRandomPositionInBox(Vector2 center, float width, float height)

@@ -9,7 +9,7 @@ public class MeteoriteStorm : MonoBehaviour
 
     private void Start()
     {
-        InvokeRepeating("SpawnMeteor", 0f, 1f);
+        InvokeRepeating(nameof(SpawnMeteor), 0f, 1f);
     }
 
     private void SpawnMeteor()
@@ -21,7 +21,7 @@ public class MeteoriteStorm : MonoBehaviour
 
         if (meteoritesSpawned >= MeteoritesToSpawn)
         {
-            CancelInvoke("SpawnMeteor");
+            CancelInvoke(nameof(SpawnMeteor));
             Destroy(gameObject);
         }
     }

@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
 
-
 public class Iceball : MonoBehaviour
 {
     [Header("Base Stats")]
@@ -22,7 +21,6 @@ public class Iceball : MonoBehaviour
     private bool hasExploded = false;
     private HashSet<EnemyStats> damagedEnemies = new HashSet<EnemyStats>();
 
-
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
@@ -34,9 +32,8 @@ public class Iceball : MonoBehaviour
         transform.position = GameManager.Instance.GetPlayerTransform().position;
         direction = (targetPosition - transform.position).normalized;
 
-        Invoke("DestroyGameObject", maxLifetime);
+        Invoke(nameof(DestroyGameObject), maxLifetime);
     }
-
 
     void Update()
     {
@@ -46,8 +43,6 @@ public class Iceball : MonoBehaviour
         }
     }
 
-
-
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (!hasExploded)
@@ -56,7 +51,6 @@ public class Iceball : MonoBehaviour
             boxCollider.enabled = false;
         }
     }
-
 
     private void Explode()
     {
@@ -82,12 +76,10 @@ public class Iceball : MonoBehaviour
             }
         }
 
-
         hasExploded = true;
-        CancelInvoke();
+        CancelInvoke(nameof(DestroyGameObject));
         StartCoroutine(AnimateLightAndDestroy());
     }
-
 
     public void SetDirection(Vector3 newDirection)
     {
@@ -116,12 +108,12 @@ public class Iceball : MonoBehaviour
             yield return null;
         }
 
-        // Give time for audio to finish
         spriteRenderer.enabled = false;
         light2D.enabled = false;
+
+        // Give time for audio to play
         Destroy(gameObject, 2f);
     }
-
 
     private void DestroyGameObject()
     {

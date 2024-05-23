@@ -32,7 +32,6 @@ public class ArcaneFury : MonoBehaviour
     private HashSet<EnemyStats> damagedEnemies = new HashSet<EnemyStats>();
     private float damageMultiplier = 1f;
 
-
     private void Start()
     {
         card1 = GameObject.Find("UI/Cards/Card 1").GetComponent<SpellCard>();
@@ -106,7 +105,7 @@ public class ArcaneFury : MonoBehaviour
         particles.Stop();
 
         hasExploded = true;
-        CancelInvoke();
+        CancelInvoke(nameof(DestroyGameObject));
         StartCoroutine(AnimateLightAndDestroy());
     }
 
@@ -139,12 +138,12 @@ public class ArcaneFury : MonoBehaviour
             yield return null;
         }
 
-        // Give time for audio to finish
         spriteRenderer.enabled = false;
         light2D.enabled = false;
+
+        // Give time for audio to play
         Destroy(gameObject, 2f);
     }
-
 
     private void DestroyGameObject()
     {

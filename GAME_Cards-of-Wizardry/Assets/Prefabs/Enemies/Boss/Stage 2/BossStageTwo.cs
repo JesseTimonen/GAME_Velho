@@ -18,6 +18,7 @@ public abstract class BossStageTwo : MonoBehaviour
     [SerializeField] protected Material outlineMaterial;
     [SerializeField] protected float dissolveSpeed = 3f;
     [SerializeField] protected float materialSwapSpeed = 5f;
+    private Renderer materialRenderer;
 
     protected EnemyStats stats;
     protected Transform player;
@@ -37,6 +38,7 @@ public abstract class BossStageTwo : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         boxCollider = GetComponent<BoxCollider2D>();
+        materialRenderer = GetComponent<Renderer>();
     }
 
     protected virtual void Start()
@@ -130,27 +132,28 @@ public abstract class BossStageTwo : MonoBehaviour
 
     protected IEnumerator DissolveEffect(bool isAppearing)
     {
-        Renderer renderer = GetComponent<Renderer>();
+        float outlineThickness = isAppearing ? 0f : 0.4f;
+        float dissolveValue = isAppearing ? 0f : 1f;
+        float outlineStep = Time.unscaledDeltaTime * materialSwapSpeed * (isAppearing ? 1 : -1);
+        float dissolveStep = Time.unscaledDeltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
 
         if (!isAppearing)
         {
             // Step 1: Outline _Thickness from 0.4 to 0
-            float outlineThickness = 0.4f;
             while (outlineThickness > 0f)
             {
-                outlineThickness -= Time.unscaledDeltaTime * materialSwapSpeed;
-                outlineMaterial.SetFloat("_Thickness", Mathf.Clamp(outlineThickness, 0f, 0.4f));
+                outlineThickness = Mathf.Max(0f, outlineThickness - outlineStep);
+                outlineMaterial.SetFloat("_Thickness", outlineThickness);
                 yield return null;
             }
 
             // Step 2: Change material to dissolve
-            renderer.material = dissolveMaterial;
+            materialRenderer.material = dissolveMaterial;
 
             // Step 3: Dissolve _Fade goes from 1 to 0
-            float dissolveValue = 1f;
             while (dissolveValue > 0f)
             {
-                dissolveValue -= Time.unscaledDeltaTime * dissolveSpeed;
+                dissolveValue = Mathf.Max(0f, dissolveValue - dissolveStep);
                 dissolveMaterial.SetFloat("_Fade", dissolveValue);
                 yield return null;
             }
@@ -158,23 +161,21 @@ public abstract class BossStageTwo : MonoBehaviour
         else
         {
             // Step 5: Dissolve _Fade goes from 0 to 1
-            float dissolveValue = 0f;
             while (dissolveValue < 1f)
             {
-                dissolveValue += Time.unscaledDeltaTime * dissolveSpeed;
+                dissolveValue = Mathf.Min(1f, dissolveValue + dissolveStep);
                 dissolveMaterial.SetFloat("_Fade", dissolveValue);
                 yield return null;
             }
 
             // Step 6: Change material to outline
-            renderer.material = outlineMaterial;
+            materialRenderer.material = outlineMaterial;
 
             // Step 7: Outline _Thickness from 0 to 0.4
-            float outlineThickness = 0f;
             while (outlineThickness < 0.4f)
             {
-                outlineThickness += Time.unscaledDeltaTime * materialSwapSpeed;
-                outlineMaterial.SetFloat("_Thickness", Mathf.Clamp(outlineThickness, 0f, 0.4f));
+                outlineThickness = Mathf.Min(0.4f, outlineThickness + outlineStep);
+                outlineMaterial.SetFloat("_Thickness", outlineThickness);
                 yield return null;
             }
         }
@@ -185,11 +186,6 @@ public abstract class BossStageTwo : MonoBehaviour
         Vector2 direction = (player.position - transform.position).normalized;
         bool facingLeft = direction.x < 0;
         transform.rotation = Quaternion.Euler(0, facingLeft ? 0 : 180, 0);
-    }
-
-    public void DestroyGameobject()
-    {
-        Destroy(gameObject);
     }
 
     private void ExtendFurthestRadius()

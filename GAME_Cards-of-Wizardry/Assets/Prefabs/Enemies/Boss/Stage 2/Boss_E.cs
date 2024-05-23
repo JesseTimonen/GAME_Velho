@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class Boss_E : BossStageTwo
 {
     [Header("Shotgun Attack")]
@@ -10,13 +9,11 @@ public class Boss_E : BossStageTwo
     [SerializeField] private int shotgunBulletCount = 5;
     private float shotgunTimer;
 
-
     protected override void Start()
     {
         base.Start();
         shotgunTimer = shotgunCooldown;
     }
-
 
     protected override void HandleAbilities()
     {
@@ -28,7 +25,6 @@ public class Boss_E : BossStageTwo
             shotgunTimer = shotgunCooldown;
         }
     }
-
 
     private void LaunchShotgunBurst()
     {

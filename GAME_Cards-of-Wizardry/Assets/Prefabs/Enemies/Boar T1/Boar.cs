@@ -164,10 +164,4 @@ public class Boar : MonoBehaviour
         attackCollider.enabled = false;
         rb.velocity = Vector2.zero;
     }
-
-    // Called from animation event
-    public void DestroyGameObject()
-    {
-        Destroy(gameObject);
-    }
 }

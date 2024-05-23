@@ -334,11 +334,6 @@ public class Wizard : MonoBehaviour
         teleportDisabled = false;
     }
 
-    public void DestroyGameobject()
-    {
-        Destroy(gameObject);
-    }
-
     #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {

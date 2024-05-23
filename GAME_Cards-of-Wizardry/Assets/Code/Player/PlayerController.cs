@@ -258,7 +258,7 @@ public class PlayerController : MonoBehaviour
         }
 
         spriteRenderer.color = Color.red;
-        Invoke("ResetSpriteColor", 0.33f);
+        Invoke(nameof(ResetSpriteColor), 0.33f);
         ApplyDamage(amount, isFireDamage);
     }
 
@@ -394,7 +394,7 @@ public class PlayerController : MonoBehaviour
             healCoroutine = null;
         }
 
-        Invoke("DieScreen", 1f);
+        Invoke(nameof(DieScreen), 1f);
     }
 
 
@@ -566,7 +566,7 @@ public class PlayerController : MonoBehaviour
         }
 
         spriteRenderer.color = Color.green;
-        Invoke("ResetSpriteColor", 0.33f);
+        Invoke(nameof(ResetSpriteColor), 0.33f);
     }
 
 

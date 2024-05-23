@@ -35,8 +35,11 @@ public class EnemyFireball : MonoBehaviour
     public void SetDirection(Vector2 newDirection)
     {
         direction = newDirection;
+        SetRotation();
+    }
 
-        // Set the rotation to face the movement direction
+    private void SetRotation()
+    {
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(new Vector3(0, 0, angle));
     }
@@ -45,18 +48,23 @@ public class EnemyFireball : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
-            PlayerController playerController = GameManager.Instance.GetPlayerController();
-            playerController.TakeDamage(Mathf.RoundToInt(Random.Range(minDamage, maxDamage) * GameManager.Instance.GetSurvivalModifier()));
+            HandlePlayerCollision();
+        }
+    }
 
-            if (fireDuration > 0)
-            {
-                playerController.SetOnFire(fireDuration);
-            }
+    private void HandlePlayerCollision()
+    {
+        PlayerController playerController = GameManager.Instance.GetPlayerController();
+        playerController.TakeDamage(Mathf.RoundToInt(Random.Range(minDamage, maxDamage) * GameManager.Instance.GetSurvivalModifier()));
 
-            if (destroyOnContact)
-            {
-                Destroy(gameObject);
-            }
+        if (fireDuration > 0)
+        {
+            playerController.SetOnFire(fireDuration);
+        }
+
+        if (destroyOnContact)
+        {
+            Destroy(gameObject);
         }
     }
 

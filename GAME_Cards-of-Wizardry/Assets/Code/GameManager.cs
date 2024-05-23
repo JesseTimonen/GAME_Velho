@@ -61,7 +61,7 @@ public class GameManager : MonoBehaviour
         waveManager.SetActive(true);
         gameHasStarted = true;
         WindAudioObject.SetActive(true);
-        Invoke("ShowBasicUI", 2f);
+        Invoke(nameof(ShowBasicUI), 2f);
     }
 
 

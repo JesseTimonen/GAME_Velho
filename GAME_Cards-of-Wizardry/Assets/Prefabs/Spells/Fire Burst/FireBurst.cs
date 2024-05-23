@@ -9,9 +9,10 @@ public class FireBurst : MonoBehaviour
     {
         transform.position = GameManager.Instance.GetPlayerTransform().position;
         FireInDirections();
-        Invoke("DestroyGameObject", 3f);
-    }
 
+        // Give time for audio to play
+        Invoke(nameof(DestroyGameObject), 5f);
+    }
 
     private void FireInDirections()
     {

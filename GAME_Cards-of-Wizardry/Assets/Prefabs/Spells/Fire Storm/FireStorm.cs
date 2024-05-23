@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using FirstGearGames.SmoothCameraShaker;
 
-
 public class FireStorm : MonoBehaviour
 {
     [Header("Stats")]
@@ -29,7 +28,6 @@ public class FireStorm : MonoBehaviour
     private Light2D light2D;
     private float startTime;
 
-
     private void Start()
     {
         startTime = Time.time;
@@ -43,7 +41,6 @@ public class FireStorm : MonoBehaviour
             CameraShakerHandler.Shake(explosionShake);
         }
     }
-
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -90,8 +87,6 @@ public class FireStorm : MonoBehaviour
             }
         }
     }
-
-
 
     private IEnumerator AnimateDissolveEffect()
     {

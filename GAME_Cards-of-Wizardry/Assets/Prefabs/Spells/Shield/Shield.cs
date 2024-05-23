@@ -6,7 +6,7 @@ public class Shield : MonoBehaviour
     [SerializeField] private bool enableShieldDamageBuff = false;
     [SerializeField] private bool enableShieldHeal = false;
 
-    public void Start()
+    private void Start()
     {
         PlayerController playerController = GameManager.Instance.GetPlayerController();
 
@@ -22,9 +22,9 @@ public class Shield : MonoBehaviour
 
         playerController.AddShield(shieldAmount);
 
-        Invoke("DestroyGameObject", 2f);
+        // Give time for audio to play
+        Invoke(nameof(DestroyGameObject), 5f);
     }
-
 
     private void DestroyGameObject()
     {
