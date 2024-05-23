@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 [CreateAssetMenu(fileName = "New SpellBook", menuName = "Spell System/SpellBook")]
 public class SpellBook : ScriptableObject
 {
@@ -36,9 +35,7 @@ public class SpellBook : ScriptableObject
         public float masterfulCooldownDelay;
     }
 
-
     public Spell[] spells;
-
 
     public void Initialize()
     {
@@ -69,7 +66,6 @@ public class SpellBook : ScriptableObject
         //AddSpell("Teleport", 1);
         //AddSpell("Arcane Fury", 1);
     }
-
 
     public void AddSpell(string spellName, int amount = 1)
     {

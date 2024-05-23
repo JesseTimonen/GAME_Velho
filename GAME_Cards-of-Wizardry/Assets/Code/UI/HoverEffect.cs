@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using TMPro;
 
-
 [RequireComponent(typeof(TMP_Text))]
 public class HoverEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
@@ -11,7 +10,6 @@ public class HoverEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     private TMP_Text text;
     private Color originalColor;
     private float originalSize;
-
 
     void Start()
     {
@@ -27,13 +25,11 @@ public class HoverEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         originalSize = text.fontSize;
     }
 
-
     public void OnPointerEnter(PointerEventData eventData)
     {
         text.color = hoverColor;
         text.fontSize = hoverSize;
     }
-
 
     public void OnPointerExit(PointerEventData eventData)
     {
@@ -41,13 +37,11 @@ public class HoverEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         text.fontSize = originalSize;
     }
 
-
     // Public method to allow runtime customization
     public void SetHoverColor(Color newColor)
     {
         hoverColor = newColor;
     }
-
 
     // Public method to allow runtime customization
     public void SetHoverSize(float newSize)

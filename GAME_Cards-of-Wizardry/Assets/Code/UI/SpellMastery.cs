@@ -79,7 +79,6 @@ public class SpellMastery : MonoBehaviour
         }
     }
 
-
     public void MassUpdateSpellCollection()
     {
         foreach (Spell spell in spellBook.spells)

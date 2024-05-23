@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEditor;
 
-
 [RequireComponent(typeof(LineRenderer))]
 public class SpellDirectionPreview : MonoBehaviour
 {
@@ -9,14 +8,11 @@ public class SpellDirectionPreview : MonoBehaviour
     public int coneSegments = 10;
     public float coneAngle = 10f;
     private float halfConeAngle;
-
     private LineRenderer lineRenderer;
     private Transform playerTransform;
-
     private Quaternion[] precomputedRotations;
     private Vector3 lastPlayerPosition;
     private Vector3 lastMousePosition;
-
 
     private void Start()
     {
@@ -35,7 +31,6 @@ public class SpellDirectionPreview : MonoBehaviour
         }
     }
 
-
     private void PrecomputeRotations()
     {
         precomputedRotations = new Quaternion[coneSegments + 1];
@@ -45,7 +40,6 @@ public class SpellDirectionPreview : MonoBehaviour
             precomputedRotations[i] = Quaternion.AngleAxis(angle, Vector3.forward);
         }
     }
-
 
     void Update()
     {
@@ -66,13 +60,11 @@ public class SpellDirectionPreview : MonoBehaviour
 
     }
 
-
     void DrawLine()
     {
         lineRenderer.SetPosition(0, playerTransform.position);
         lineRenderer.SetPosition(1, transform.position);
     }
-
 
     void DrawCone(Vector3 startPosition, Vector3 endPosition)
     {
@@ -89,6 +81,7 @@ public class SpellDirectionPreview : MonoBehaviour
         lineRenderer.SetPosition(coneSegments + 1, startPosition);
     }
 }
+
 
 #if UNITY_EDITOR
 [CustomEditor(typeof(SpellDirectionPreview))]

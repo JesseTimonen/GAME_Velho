@@ -2,7 +2,6 @@ using UnityEngine;
 using TMPro;
 using UnityEditor;
 
-
 public class ToolTip : MonoBehaviour
 {
     [SerializeField] private GameObject tooltipPanel;

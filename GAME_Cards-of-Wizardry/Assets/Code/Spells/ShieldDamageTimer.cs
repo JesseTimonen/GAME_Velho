@@ -9,18 +9,17 @@ public class ShieldDamageTimer : MonoBehaviour
     private float currentTime;
     private bool timerIsActive = false;
 
-
     private void Start()
     {
         countdownText = GetComponent<TextMeshProUGUI>();
     }
-
 
     private void Update()
     {
         if (timerIsActive)
         {
             currentTime -= Time.deltaTime;
+
             if (currentTime <= 0)
             {
                 currentTime = 0;
@@ -30,7 +29,6 @@ public class ShieldDamageTimer : MonoBehaviour
             countdownText.text = Mathf.Ceil(currentTime).ToString("F0") + "s";
         }
     }
-
 
     public void InitializeTimer()
     {

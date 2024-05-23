@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 
-
 public class ShieldTimer : MonoBehaviour
 {
     [SerializeField] private PlayerController playerController;
@@ -10,40 +9,31 @@ public class ShieldTimer : MonoBehaviour
     private float currentTime;
     private bool timerIsActive = false;
 
-
     private void Start()
     {
         countdownText = GetComponent<TextMeshProUGUI>();
     }
-
 
     private void Update()
     {
         if (timerIsActive)
         {
             currentTime -= Time.deltaTime;
+
             if (currentTime <= 0)
             {
                 currentTime = 0;
                 timerIsActive = false;
-                Expire();
+                playerController.RemoveShield();
             }
 
             countdownText.text = Mathf.Ceil(currentTime).ToString("F0") + "s";
         }
     }
 
-
     public void InitializeTimer()
     {
         currentTime = shieldDuration;
         timerIsActive = true;
-    }
-
-
-    public void Expire()
-    {
-        playerController.RemoveShield();
-        countdownText.text = "0s";
     }
 }

@@ -8,12 +8,10 @@ public class UIIconSound : MonoBehaviour
     [SerializeField] private GameObject title;
     private Button button;
 
-
     private void Start()
     {
         button = GetComponent<Button>();
     }
-
 
     public void PlayIconHoverSound()
     {

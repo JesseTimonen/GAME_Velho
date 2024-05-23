@@ -48,7 +48,6 @@ public class OptionsMenu : MonoBehaviour
     [SerializeField] private GameObject cancelResetProgressionButton;
     [SerializeField] private GameObject resetProgressionFeedback;
 
-
     private void Update()
     {
         if (inputController.OptionsPanelPressed && GameManager.Instance.UIPanelOpened == false)
@@ -60,7 +59,6 @@ public class OptionsMenu : MonoBehaviour
             CloseOptionsPanel();
         }
     }
-
 
     public void OpenOptionsPanel()
     {
@@ -117,7 +115,6 @@ public class OptionsMenu : MonoBehaviour
         Invoke(nameof(CloseUIPanelReference), 0.1f);
     }
 
-
     private bool AreSettingsValid()
     {
         if (leaderboardUsername.activeSelf && string.IsNullOrEmpty(leaderboardUsernameField.text))
@@ -128,7 +125,6 @@ public class OptionsMenu : MonoBehaviour
 
         return true;
     }
-
 
     private void SaveSettings()
     {
@@ -145,18 +141,15 @@ public class OptionsMenu : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-
     private void CloseUIPanelReference()
     {
         GameManager.Instance.UIPanelOpened = false;
     }
 
-
     public void PostScoresAutomatically()
     {
         leaderboardUsername.SetActive(autoPostLeaderboardToggle.isOn);
     }
-
 
     public void UpdateVolumeSliders()
     {
