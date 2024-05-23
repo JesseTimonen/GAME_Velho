@@ -7,11 +7,33 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public class PlayerController : MonoBehaviour
 {
+    [Header("MOVEMENT")]
+    private float moveSpeed = 3f;
+    private bool isKnockedBack = false;
+    private Vector2 knockbackVelocity;
+
+    [Header("STATS")]
+    [SerializeField] private int maxHealth = 100;
+    [SerializeField] private int currentHealth = 100;
+    [SerializeField] private int tempMaxHealth = 0;
+    [SerializeField] private int maxMana = 100;
+    [SerializeField] private float currentMana = 100;
+    [SerializeField] private int tempMaxMana = 0;
+    [SerializeField] private float manaRechargeRate = 3f;
+    [SerializeField] private int strength = 1;
+    [SerializeField] private int intelligence = 1;
+    [SerializeField] private int wisdom = 1;
+    [SerializeField] private int shieldAmount = 0;
+    [SerializeField] private bool shieldDamageBuffEnabled = false;
+    [SerializeField] private bool shieldHealEnabled = false;
+
     [Header("REFERENCES")]
     [SerializeField] private InputController inputController;
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private Animator playerAnimator;
     [SerializeField] private MusicManager musicManager;
+    private Rigidbody2D rb;
+    private Camera mainCamera;
 
     [Header("BUFFS AND DEBUFFS")]
     [SerializeField] private GameObject tempHealthIcon;
@@ -29,8 +51,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject empowerIcon;
     [SerializeField] private TextMeshProUGUI empowerIconTimer;
     [SerializeField] private TextMeshProUGUI empowerIconValue;
-    private Rigidbody2D rb;
-    private Camera mainCamera;
 
     [Header("SHIELDS")]
     [SerializeField] private ParticleSystem shieldParticles;
@@ -43,8 +63,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private ShieldTimer shieldTimer;
     [SerializeField] private ShieldDamageTimer shieldDamageTimer;
 
-    [Header("Flames")]
-    [SerializeField] private ParticleSystem flameParticles;
+    [Header("Burning")]
+    [SerializeField] private ParticleSystem burningParticles;
 
     [Header("UI")]
     [SerializeField] private Transform canvas;
@@ -55,6 +75,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform additionalHealthBarCanvas;
     [SerializeField] private Slider additionalHealthSlider;
     [SerializeField] private Slider additionalManaSlider;
+
+    [Header("Floating numbers")]
     [SerializeField] private GameObject healFloatingPrefab;
     [SerializeField] private GameObject manaFloatingPrefab;
     [SerializeField] private GameObject damageFloatingPrefab;
@@ -66,26 +88,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject dieScreenPanel;
     [SerializeField] private GameObject immortalityBuff;
     private string lastPlayedSong = "";
-
-    [Header("MOVEMENT")]
-    private float moveSpeed = 3f;
-    private bool isKnockedBack = false;
-    private Vector2 knockbackVelocity;
-
-    [Header("STATS")]
-    [SerializeField] private int maxHealth = 100;
-    [SerializeField] private int tempMaxHealth = 0;
-    [SerializeField] private int currentHealth = 100;
-    [SerializeField] private int maxMana = 100;
-    [SerializeField] private int tempMaxMana = 0;
-    [SerializeField] private float currentMana = 100;
-    [SerializeField] private float manaRechargeRate = 2;
-    [SerializeField] private int shieldAmount = 0;
-    [SerializeField] private bool shieldDamageBuffEnabled = false;
-    [SerializeField] private bool shieldHealEnabled = false;
-    [SerializeField] private int strength = 1;
-    [SerializeField] private int intelligence = 1;
-    [SerializeField] private int wisdom = 1;
 
     private Coroutine burnCoroutine;
     private float burnEndTime;
@@ -128,17 +130,16 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!isFrozen)
-        {
-            if (!isKnockedBack)
-            {
-                Move();
-            }
-        }
-        else
+        if (isFrozen)
         {
             rb.velocity = Vector2.zero;
             playerAnimator.SetBool("IsMoving", false);
+            return;
+        }
+
+        if (!isKnockedBack)
+        {
+            Move();
         }
     }
 
@@ -153,35 +154,22 @@ public class PlayerController : MonoBehaviour
 
         additionalHealthSlider.value = Mathf.Ceil(currentHealth);
         additionalHealthSlider.maxValue = Mathf.Ceil(GetMaxHealth());
-        additionalManaSlider.value = Mathf.Ceil(currentMana);
-        additionalManaSlider.maxValue = Mathf.Ceil(GetMaxMana());
-    }
-
-    private void RechargeMana()
-    {
-        // Wisdom increases mana recharge by 5% per rank, adjustements might be needed when game balance becomes more clear
-        currentMana = Mathf.Min(GetMaxMana(), currentMana + GetCurrentManaRecharge() * Time.deltaTime);
+        additionalManaSlider.value = Mathf.Floor(currentMana);
+        additionalManaSlider.maxValue = Mathf.Floor(GetMaxMana());
     }
 
     private void Move()
     {
         if (isdead) return;
 
-        if (inputController.Move.x != 0 || inputController.Move.y != 0)
-        {
-            playerAnimator.SetBool("IsMoving", true);
-        }
-        else
-        {
-            playerAnimator.SetBool("IsMoving", false);
-        }
+        playerAnimator.SetBool("IsMoving", (inputController.Move.x != 0 || inputController.Move.y != 0));
 
-        // Strength increases movement speed by 2% per rank, adjustements might be needed when game balance becomes more clear
-        rb.velocity = new Vector2(inputController.Move.x, inputController.Move.y) * GetRunSpeed();
+        rb.velocity = inputController.Move * GetRunSpeed();
     }
 
     public float GetRunSpeed()
     {
+        // Strength increases movement speed by 2% per rank
         return moveSpeed * (1 + 0.02f * (strength - 1));
     }
 
@@ -226,6 +214,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void RechargeMana()
+    {
+        // Wisdom increases mana recharge by 5% per rank
+        currentMana = Mathf.Min(GetMaxMana(), currentMana + GetCurrentManaRecharge() * Time.deltaTime);
+    }
+
     public void TakeDamage(int amount, bool isFireDamage = false)
     {
         if (shieldAmount > 0)
@@ -234,8 +228,7 @@ public class PlayerController : MonoBehaviour
 
             if (amount <= 0)
             {
-                GameObject instantiatedfloatingText = Instantiate(absorbedFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
-                instantiatedfloatingText.transform.SetParent(canvas);
+                InstantiateFloatingText(absorbedFloatingPrefab);
                 return;
             }
         }
@@ -266,18 +259,7 @@ public class PlayerController : MonoBehaviour
 
         currentHealth -= damageTaken;
 
-        GameObject instantiatedfloatingText;
-
-        if (isFireDamage)
-        {
-            instantiatedfloatingText = Instantiate(burnFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
-        }
-        else
-        {
-            instantiatedfloatingText = Instantiate(damageFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
-        }
-
-        instantiatedfloatingText.transform.SetParent(canvas);
+        GameObject instantiatedfloatingText = InstantiateFloatingText(isFireDamage ? burnFloatingPrefab : damageFloatingPrefab);
         instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = damageTaken;
 
         if (currentHealth <= 0)
@@ -299,21 +281,69 @@ public class PlayerController : MonoBehaviour
         return (float)strength / (strength + 10);
     }
 
+    public void SetOnFire(float duration)
+    {
+        fireIcon.SetActive(true);
+
+        if (!burningParticles.isPlaying)
+        {
+            burningParticles.Play();
+        }
+
+        UpdateCoroutine(ref burnCoroutine, ApplyBurn(duration), ref burnEndTime, duration);
+
+        fireIconTimer.text = $"{Mathf.CeilToInt(burnEndTime - Time.time)}s";
+    }
+
+    private IEnumerator ApplyBurn(float duration)
+    {
+        while (Time.time < burnEndTime)
+        {
+            TakeDamage(10, true);
+            fireIconTimer.text = $"{Mathf.CeilToInt(burnEndTime - Time.time)}s";
+            yield return new WaitForSeconds(1f);
+        }
+
+        burnCoroutine = null;
+        fireIcon.SetActive(false);
+        burningParticles.Stop();
+    }
+
+    public void Freeze(float duration)
+    {
+        StopCoroutineIfExists(ref freezeCoroutine);
+
+        GameObject instantiatedfloatingText = InstantiateFloatingText(freezeFloatingPrefab);
+
+        isFrozen = true;
+        freezeIcon.SetActive(true);
+        spriteRenderer.color = new Color(0f, 125f, 255f, 1f);
+        UpdateCoroutine(ref freezeCoroutine, ApplyFreeze(duration), ref freezeEndTime, duration);
+    }
+
+    private IEnumerator ApplyFreeze(float duration)
+    {
+        while (Time.time < freezeEndTime)
+        {
+            freezeIconTimer.text = $"{Mathf.CeilToInt(freezeEndTime - Time.time)}s";
+            yield return null;
+        }
+
+        freezeCoroutine = null;
+        isFrozen = false;
+        freezeIcon.SetActive(false);
+        ResetSpriteColor();
+    }
+
     private void ResetSpriteColor()
     {
-        if (isFrozen)
-        {
-            spriteRenderer.color = new Color(0f, 125f, 255f, 1f);
-        }
-        else
-        {
-            spriteRenderer.color = Color.white;
-        }
+        spriteRenderer.color = isFrozen ? Color.blue : Color.white;
     }
 
     public void Die()
     {
-        if (isImmortal) { return; }
+        if (isImmortal) return;
+
         isImmortal = true;
         isdead = true;
         GameManager.Instance.hasPlayerDied = true;
@@ -325,11 +355,7 @@ public class PlayerController : MonoBehaviour
         GameManager.Instance.UIPanelOpened = true;
         GameManager.Instance.HideBasicUI();
 
-        if (healCoroutine != null)
-        {
-            StopCoroutine(healCoroutine);
-            healCoroutine = null;
-        }
+        StopCoroutineIfExists(ref healCoroutine);
 
         Invoke(nameof(DieScreen), 1f);
     }
@@ -354,45 +380,6 @@ public class PlayerController : MonoBehaviour
         SetCurrentHealth(1);
 
         isdead = false;
-    }
-
-    public void SetOnFire(float duration)
-    {
-        fireIcon.SetActive(true);
-
-        if (!flameParticles.isPlaying)
-        {
-            flameParticles.Play();
-        }
-
-        if (burnCoroutine != null)
-        {
-            if (Time.time + duration > burnEndTime)
-            {
-                burnEndTime = Time.time + duration;
-            }
-        }
-        else
-        {
-            burnEndTime = Time.time + duration;
-            burnCoroutine = StartCoroutine(ApplyBurn());
-        }
-
-        fireIconTimer.text = $"{Mathf.CeilToInt(burnEndTime - Time.time)}s";
-    }
-
-    private IEnumerator ApplyBurn()
-    {
-        while (Time.time < burnEndTime)
-        {
-            TakeDamage(10, true);
-            fireIconTimer.text = $"{Mathf.CeilToInt(burnEndTime - Time.time)}s";
-            yield return new WaitForSeconds(1f);
-        }
-
-        burnCoroutine = null;
-        fireIcon.SetActive(false);
-        flameParticles.Stop();
     }
 
     public void AddShield(int amount)
@@ -433,7 +420,7 @@ public class PlayerController : MonoBehaviour
         {
             ShieldDamageUIElement.SetActive(shieldAmount > 0);
             float shieldDamage = (GetShieldDamageBoost() - 1) * 100;
-            ShieldDamageValueText.text = Mathf.Round(shieldDamage).ToString() + "%";
+            ShieldDamageValueText.text = $"{Mathf.Round(shieldDamage)}%";
         }
     }
 
@@ -447,42 +434,6 @@ public class PlayerController : MonoBehaviour
         shieldHealEnabled = true;
     }
 
-    public void ActivateEmpower(float damageBuff, float duration)
-    {
-        empowerIcon.SetActive(true);
-
-        empowerDamageBuff = Mathf.Max(empowerDamageBuff, damageBuff);
-        empowerIconValue.text = empowerDamageBuff + "%";
-
-        if (empowerCoroutine != null)
-        {
-            if (Time.time + duration > empowerEndTime)
-            {
-                empowerEndTime = Time.time + duration;
-            }
-        }
-        else
-        {
-            empowerEndTime = Time.time + duration;
-            empowerCoroutine = StartCoroutine(EmpowerCountDown());
-        }
-
-        empowerIconTimer.text = $"{Mathf.CeilToInt(empowerEndTime - Time.time)}s";
-    }
-
-    private IEnumerator EmpowerCountDown()
-    {
-        while (Time.time < empowerEndTime)
-        {
-            empowerIconTimer.text = $"{Mathf.CeilToInt(empowerEndTime - Time.time)}s";
-            yield return new WaitForSeconds(1f);
-        }
-
-        empowerCoroutine = null;
-        empowerIcon.SetActive(false);
-        empowerDamageBuff = 0;
-    }
-
     public int GetCurrentHealth()
     {
         return currentHealth;
@@ -492,23 +443,16 @@ public class PlayerController : MonoBehaviour
     {
         if (currentHealth > value)
         {
-            GameObject instantiatedfloatingText = Instantiate(damageFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
-            instantiatedfloatingText.transform.SetParent(canvas);
+            GameObject instantiatedfloatingText = InstantiateFloatingText(damageFloatingPrefab);
             instantiatedfloatingText.GetComponent<DamageNumberMesh>().number = currentHealth - value;
         }
         else if (currentHealth < value)
         {
-            GameObject instantiatedfloatingText = Instantiate(healFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
-            instantiatedfloatingText.transform.SetParent(canvas);
+            GameObject instantiatedfloatingText = InstantiateFloatingText(healFloatingPrefab);
             instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "+" + (value - currentHealth);
         }
 
-        currentHealth = value;
-
-        if (currentHealth > GetMaxHealth())
-        {
-            currentHealth = GetMaxHealth();
-        }
+        currentHealth = Mathf.Min(value, GetMaxHealth());
     }
 
     public void SetHealthFull()
@@ -520,8 +464,7 @@ public class PlayerController : MonoBehaviour
     {
         currentHealth += amount;
 
-        GameObject instantiatedfloatingText = Instantiate(healFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
-        instantiatedfloatingText.transform.SetParent(canvas);
+        GameObject instantiatedfloatingText = InstantiateFloatingText(healFloatingPrefab);
         instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "+" + amount;
 
         if (currentHealth > GetMaxHealth())
@@ -537,16 +480,12 @@ public class PlayerController : MonoBehaviour
     {
         healIcon.SetActive(true);
 
-        healEndTime = Time.time + duration;
-        healIconTimer.text = $"{Mathf.CeilToInt(healEndTime - Time.time)}s";
+        UpdateCoroutine(ref healCoroutine, ApplyHealOverTime(duration), ref healEndTime, duration);
 
-        if (healCoroutine == null)
-        {
-            healCoroutine = StartCoroutine(ApplyHealOverTime());
-        }
+        healIconTimer.text = $"{Mathf.CeilToInt(healEndTime - Time.time)}s";
     }
 
-    private IEnumerator ApplyHealOverTime()
+    private IEnumerator ApplyHealOverTime(float duration)
     {
         while (Time.time < healEndTime)
         {
@@ -584,15 +523,10 @@ public class PlayerController : MonoBehaviour
         tempHealthIcon.SetActive(true);
 
         tempMaxHealth = Mathf.Max(tempMaxHealth, additionalMaxHealth);
-        tempMaxHealthEndTime = Mathf.Max(tempMaxHealthEndTime, Time.time + duration);
+        UpdateCoroutine(ref tempMaxHealthCoroutine, DisplayMaxHealthBuff(), ref tempMaxHealthEndTime, duration);
 
         tempHealthIconDuration.text = $"{Mathf.CeilToInt(tempMaxHealthEndTime - Time.time)}s";
         tempHealthIconAmount.text = tempMaxHealth.ToString();
-
-        if (tempMaxHealthCoroutine == null)
-        {
-            tempMaxHealthCoroutine = StartCoroutine(DisplayMaxHealthBuff());
-        }
     }
 
     private IEnumerator DisplayMaxHealthBuff()
@@ -604,12 +538,7 @@ public class PlayerController : MonoBehaviour
         }
 
         tempMaxHealth = 0;
-
-        if (currentHealth > maxHealth)
-        {
-            currentHealth = maxHealth;
-        }
-
+        currentHealth = Mathf.Min(currentHealth, maxHealth);
         tempMaxHealthCoroutine = null;
         tempHealthIcon.SetActive(false);
     }
@@ -626,12 +555,7 @@ public class PlayerController : MonoBehaviour
 
     public void SetCurrentMana(float value)
     {
-        currentMana = value;
-
-        if (currentMana > GetMaxMana())
-        {
-            currentMana = GetMaxMana();
-        }
+        currentMana = Mathf.Min(value, GetMaxMana());
     }
 
     public void SetManaFull()
@@ -641,16 +565,10 @@ public class PlayerController : MonoBehaviour
 
     public void AddMana(float amount)
     {
-        currentMana += amount;
+        currentMana = Mathf.Min(currentMana + amount, GetMaxMana());
 
-        GameObject instantiatedfloatingText = Instantiate(manaFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
-        instantiatedfloatingText.transform.SetParent(canvas);
+        GameObject instantiatedfloatingText = InstantiateFloatingText(manaFloatingPrefab);
         instantiatedfloatingText.GetComponent<DamageNumberMesh>().leftText = "+" + amount;
-
-        if (currentMana > GetMaxMana())
-        {
-            currentMana = GetMaxMana();
-        }
     }
 
     public bool HasMana(float amount)
@@ -660,12 +578,7 @@ public class PlayerController : MonoBehaviour
 
     public void UseMana(float amount)
     {
-        currentMana -= amount;
-
-        if (currentMana < 0)
-        {
-            currentMana = 0;
-        }
+        currentMana = Mathf.Max(currentMana - amount, 0);
     }
 
     public int GetMaxMana()
@@ -693,15 +606,10 @@ public class PlayerController : MonoBehaviour
         tempManaIcon.SetActive(true);
 
         tempMaxMana = Mathf.Max(tempMaxMana, additionalMaxMana);
-        tempMaxManaEndTime = Mathf.Max(tempMaxManaEndTime, Time.time + duration);
+        UpdateCoroutine(ref tempMaxManaCoroutine, DisplayMaxManaBuff(), ref tempMaxManaEndTime, duration);
 
         tempManaIconDuration.text = $"{Mathf.CeilToInt(tempMaxManaEndTime - Time.time)}s";
         tempManaIconAmount.text = tempMaxMana.ToString();
-
-        if (tempMaxManaCoroutine == null)
-        {
-            tempMaxManaCoroutine = StartCoroutine(DisplayMaxManaBuff());
-        }
     }
 
     private IEnumerator DisplayMaxManaBuff()
@@ -713,45 +621,9 @@ public class PlayerController : MonoBehaviour
         }
 
         tempMaxMana = 0;
-
-        if (currentMana > maxMana)
-        {
-            currentMana = maxMana;
-        }
-
+        currentMana = Mathf.Min(currentMana, maxMana);
         tempMaxManaCoroutine = null;
         tempManaIcon.SetActive(false);
-    }
-
-    public void Freeze(float duration)
-    {
-        if (freezeCoroutine != null)
-        {
-            StopCoroutine(freezeCoroutine);
-        }
-
-        GameObject instantiatedfloatingText = Instantiate(freezeFloatingPrefab, additionalHealthSlider.transform.position, Quaternion.identity);
-        instantiatedfloatingText.transform.SetParent(canvas);
-
-        isFrozen = true;
-        freezeIcon.SetActive(true);
-        spriteRenderer.color = new Color(0f, 125f, 255f, 1f);
-        freezeEndTime = Time.time + duration;
-        freezeCoroutine = StartCoroutine(ApplyFreeze(duration));
-    }
-
-    private IEnumerator ApplyFreeze(float duration)
-    {
-        while (Time.time < freezeEndTime)
-        {
-            freezeIconTimer.text = $"{Mathf.CeilToInt(freezeEndTime - Time.time)}s";
-            yield return null;
-        }
-
-        freezeCoroutine = null;
-        isFrozen = false;
-        freezeIcon.SetActive(false);
-        ResetSpriteColor();
     }
 
     public bool IsFrozen()
@@ -789,6 +661,36 @@ public class PlayerController : MonoBehaviour
         wisdom = value;
     }
 
+    public void ActivateEmpower(float damageBuff, float duration)
+    {
+        empowerIcon.SetActive(true);
+
+        empowerDamageBuff = Mathf.Max(empowerDamageBuff, damageBuff);
+        empowerIconValue.text = $"{empowerDamageBuff}%";
+
+        UpdateCoroutine(ref empowerCoroutine, EmpowerCountDown(duration), ref empowerEndTime, duration);
+
+        empowerIconTimer.text = $"{Mathf.CeilToInt(empowerEndTime - Time.time)}s";
+    }
+
+    private IEnumerator EmpowerCountDown(float duration)
+    {
+        while (Time.time < empowerEndTime)
+        {
+            empowerIconTimer.text = $"{Mathf.CeilToInt(empowerEndTime - Time.time)}s";
+            yield return new WaitForSeconds(1f);
+        }
+
+        empowerCoroutine = null;
+        empowerIcon.SetActive(false);
+        empowerDamageBuff = 0;
+    }
+
+    public float GetEmpowerDamageBoost()
+    {
+        return 1 + (empowerDamageBuff / 100f);
+    }
+
     public float GetIntelligenceDamageBoost()
     {
         // Each point of intelligence increases damage by 5%
@@ -803,17 +705,40 @@ public class PlayerController : MonoBehaviour
         return 1f + (Mathf.Min(shieldAmount, shieldMaxDamageAt) * 0.0005f);
     }
 
-    public float GetEmpowerDamageBoost()
-    {
-        return 1 + (empowerDamageBuff / 100f);
-    }
-
     public float GetDamageBoost()
     {
         float intBoost = GetIntelligenceDamageBoost();
         float shieldBoost = GetShieldDamageBoost();
         float empowerBoost = GetEmpowerDamageBoost();
 
-        return (intBoost - 1) + (shieldBoost - 1) + (empowerBoost - 1) + 1;
+        return 1 + (intBoost - 1) + (shieldBoost - 1) + (empowerBoost - 1);
+    }
+
+    private GameObject InstantiateFloatingText(GameObject prefab)
+    {
+        GameObject instantiatedfloatingText = Instantiate(prefab, additionalHealthSlider.transform.position, Quaternion.identity);
+        instantiatedfloatingText.transform.SetParent(canvas);
+        return instantiatedfloatingText;
+    }
+
+    private void StopCoroutineIfExists(ref Coroutine coroutine)
+    {
+        if (coroutine != null)
+        {
+            StopCoroutine(coroutine);
+            coroutine = null;
+        }
+    }
+
+    private void UpdateCoroutine(ref Coroutine coroutine, IEnumerator routine, ref float endTime, float duration)
+    {
+        endTime = Time.time + duration;
+
+        if (coroutine != null)
+        {
+            return;
+        }
+
+        coroutine = StartCoroutine(routine);
     }
 }
