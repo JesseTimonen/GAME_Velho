@@ -14,14 +14,6 @@ public class ArcaneFury : MonoBehaviour
     [SerializeField] private float damageBoostPerActiveSpell = 0.5f;
     [SerializeField] private ParticleSystem particles;
 
-    private SpellCard card1;
-    private SpellCard card2;
-    private SpellCard card3;
-    private SpellCard card4;
-    private SpellCard card5;
-    private SpellCard card6;
-    private SpellCard card7;
-
     private bool customDirectionSet = false;
     private AudioSource audioSource;
     private Vector3 direction;
@@ -34,15 +26,27 @@ public class ArcaneFury : MonoBehaviour
 
     private void Start()
     {
-        card1 = GameObject.Find("UI/Cards/Card 1").GetComponent<SpellCard>();
-        card2 = GameObject.Find("UI/Cards/Card 2").GetComponent<SpellCard>();
-        card3 = GameObject.Find("UI/Cards/Card 3").GetComponent<SpellCard>();
-        card4 = GameObject.Find("UI/Cards/Card 4").GetComponent<SpellCard>();
-        card5 = GameObject.Find("UI/Cards/Card 5").GetComponent<SpellCard>();
-        card6 = GameObject.Find("UI/Cards/Wis 10 Card").GetComponent<SpellCard>();
-        card7 = GameObject.Find("UI/Cards/Wis 20 Card").GetComponent<SpellCard>();
+        audioSource = GetComponent<AudioSource>();
+        boxCollider = GetComponent<BoxCollider2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        light2D = GetComponent<Light2D>();
 
-        SpellCard[] cards = new SpellCard[] { card1, card2, card3, card4, card5, card6, card7 };
+        CalculateDamageMultiplier();
+        SetInitialDirection();
+        Invoke(nameof(DestroyGameObject), maxLifetime);
+    }
+
+    private void CalculateDamageMultiplier()
+    {
+        SpellCard[] cards = {
+            GameObject.Find("UI/Cards/Card 1").GetComponent<SpellCard>(),
+            GameObject.Find("UI/Cards/Card 2").GetComponent<SpellCard>(),
+            GameObject.Find("UI/Cards/Card 3").GetComponent<SpellCard>(),
+            GameObject.Find("UI/Cards/Card 4").GetComponent<SpellCard>(),
+            GameObject.Find("UI/Cards/Card 5").GetComponent<SpellCard>(),
+            GameObject.Find("UI/Cards/Wis 10 Card").GetComponent<SpellCard>(),
+            GameObject.Find("UI/Cards/Wis 20 Card").GetComponent<SpellCard>()
+        };
 
         foreach (SpellCard card in cards)
         {
@@ -52,12 +56,10 @@ public class ArcaneFury : MonoBehaviour
                 card.StartRechargeSpell();
             }
         }
+    }
 
-        audioSource = GetComponent<AudioSource>();
-        boxCollider = GetComponent<BoxCollider2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
-
-        light2D = GetComponent<Light2D>();
+    private void SetInitialDirection()
+    {
         Vector3 targetPosition = transform.position;
         transform.position = GameManager.Instance.GetPlayerTransform().position;
 
@@ -65,16 +67,19 @@ public class ArcaneFury : MonoBehaviour
         {
             direction = (targetPosition - transform.position).normalized;
         }
-
-        Invoke(nameof(DestroyGameObject), maxLifetime);
     }
 
     private void Update()
     {
         if (!hasExploded)
         {
-            transform.position += direction * speed * Time.deltaTime;
+            MoveArcaneFury();
         }
+    }
+
+    private void MoveArcaneFury()
+    {
+        transform.position += direction * speed * Time.deltaTime;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -82,33 +87,43 @@ public class ArcaneFury : MonoBehaviour
         if (!hasExploded)
         {
             Explode();
-            boxCollider.enabled = false;
         }
     }
 
     private void Explode()
     {
+        hasExploded = true;
         audioSource.Play();
+        DealDamageToEnemies();
+        particles.Stop();
+        boxCollider.enabled = false;
+        StartCoroutine(AnimateLightAndDestroy());
+    }
 
+    private void DealDamageToEnemies()
+    {
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
         foreach (var hitCollider in hitColliders)
         {
             if (hitCollider.CompareTag("Enemy"))
             {
                 EnemyStats enemy = hitCollider.GetComponent<EnemyStats>();
-                if (damagedEnemies.Contains(enemy)) continue;  // Avoid double damage due to double colliders on some enemies
+                if (damagedEnemies.Contains(enemy)) continue;
+
                 damagedEnemies.Add(enemy);
-                enemy.TakeDamage(Mathf.RoundToInt(Random.Range(minDamage, maxDamage) * GameManager.Instance.GetPlayerController().GetDamageBoost() * damageMultiplier));
+                ApplyDamageToEnemy(enemy);
             }
         }
-
-        particles.Stop();
-
-        hasExploded = true;
-        CancelInvoke(nameof(DestroyGameObject));
-        StartCoroutine(AnimateLightAndDestroy());
     }
 
+    private void ApplyDamageToEnemy(EnemyStats enemy)
+    {
+        float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
+        float damageDealt = Random.Range(minDamage, maxDamage);
+        int finalDamage = Mathf.RoundToInt(damageDealt * playerDamageModifier * damageMultiplier);
+
+        enemy.TakeDamage(finalDamage);
+    }
 
     public void SetDirection(Vector3 newDirection)
     {
@@ -118,31 +133,26 @@ public class ArcaneFury : MonoBehaviour
 
     private IEnumerator AnimateLightAndDestroy()
     {
-        float duration = 0.25f;
-        float time = 0;
-
-        while (time < duration)
-        {
-            float phase = time / duration;
-            light2D.pointLightOuterRadius = Mathf.Lerp(0.2f, 1.0f, phase);
-            time += Time.deltaTime;
-            yield return null;
-        }
-
-        time = 0;
-        while (time < duration)
-        {
-            float phase = time / duration;
-            light2D.pointLightOuterRadius = Mathf.Lerp(1.0f, 0.0f, phase);
-            time += Time.deltaTime;
-            yield return null;
-        }
+        yield return AnimateLight(0.2f, 1.0f, 0.25f);
+        yield return AnimateLight(1.0f, 0.0f, 0.25f);
 
         spriteRenderer.enabled = false;
         light2D.enabled = false;
 
         // Give time for audio to play
         Destroy(gameObject, 2f);
+    }
+
+    private IEnumerator AnimateLight(float startRadius, float endRadius, float duration)
+    {
+        float time = 0;
+        while (time < duration)
+        {
+            float phase = time / duration;
+            light2D.pointLightOuterRadius = Mathf.Lerp(startRadius, endRadius, phase);
+            time += Time.deltaTime;
+            yield return null;
+        }
     }
 
     private void DestroyGameObject()

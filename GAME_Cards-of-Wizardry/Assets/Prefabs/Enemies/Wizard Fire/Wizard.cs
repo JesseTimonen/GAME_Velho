@@ -346,10 +346,6 @@ public class Wizard : MonoBehaviour
 }
 
 
-
-
-
-
 #if UNITY_EDITOR
 [CustomEditor(typeof(Wizard))]
 public class WizardEditor : Editor

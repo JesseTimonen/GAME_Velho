@@ -32,19 +32,12 @@ public class FireBall : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         boxCollider = GetComponent<BoxCollider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        light2D = GetComponent<Light2D>();
 
         if (!isFragment)
         {
-            light2D = GetComponent<Light2D>();
-            Vector3 targetPosition = transform.position;
-            transform.position = GameManager.Instance.GetPlayerTransform().position;
-
-            if (!customDirectionSet)
-            {
-                direction = (targetPosition - transform.position).normalized;
-            }
+            InitializeFireball();
         }
-
         Invoke(nameof(DestroyGameObject), maxLifetime);
     }
 
@@ -52,8 +45,23 @@ public class FireBall : MonoBehaviour
     {
         if (!hasExploded)
         {
-            transform.position += direction * speed * Time.deltaTime;
+            MoveFireball();
         }
+    }
+
+    private void InitializeFireball()
+    {
+        Vector3 targetPosition = transform.position;
+        transform.position = GameManager.Instance.GetPlayerTransform().position;
+        if (!customDirectionSet)
+        {
+            direction = (targetPosition - transform.position).normalized;
+        }
+    }
+
+    private void MoveFireball()
+    {
+        transform.position += direction * speed * Time.deltaTime;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -61,69 +69,77 @@ public class FireBall : MonoBehaviour
         if (!hasExploded && !isFragment)
         {
             Explode();
-            boxCollider.enabled = false;
         }
     }
 
     private void OnTriggerEnter2D(Collider2D collider)
     {
-        if (collider.CompareTag("Enemy") && isFragment)
+        if (isFragment && collider.CompareTag("Enemy"))
         {
-            EnemyStats enemy = collider.GetComponent<EnemyStats>();
-            if (damagedEnemies.Contains(enemy)) return;  // Avoid double damage due to double colliders on some enemies
-            damagedEnemies.Add(enemy);
-
-            float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
-            float damageDealt = Random.Range(minDamage, maxDamage);
-            enemy.TakeDamage(Mathf.RoundToInt(playerDamageModifier * damageDealt));
-            enemy.SetOnFire(burnDuration);
-            Destroy(gameObject);
+            HandleFragmentCollision(collider);
         }
+    }
+
+    private void HandleFragmentCollision(Collider2D collider)
+    {
+        EnemyStats enemy = collider.GetComponent<EnemyStats>();
+        if (damagedEnemies.Contains(enemy)) return;
+
+        damagedEnemies.Add(enemy);
+        ApplyDamageToEnemy(enemy);
+        Destroy(gameObject);
     }
 
     private void Explode()
     {
+        hasExploded = true;
         audioSource.Play();
+        DealDamageToEnemies();
+        if (spawnFragments)
+        {
+            SpawnFireFragments();
+        }
+        boxCollider.enabled = false;
+        StartCoroutine(AnimateLightAndDestroy());
+    }
 
+    private void DealDamageToEnemies()
+    {
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
         foreach (var hitCollider in hitColliders)
         {
             if (hitCollider.CompareTag("Enemy"))
             {
                 EnemyStats enemy = hitCollider.GetComponent<EnemyStats>();
-                if (damagedEnemies.Contains(enemy)) continue;  // Avoid double damage due to double colliders on some enemies
+                if (damagedEnemies.Contains(enemy)) continue;
+
                 damagedEnemies.Add(enemy);
-
-                float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
-                float damageDealt = Random.Range(minDamage, maxDamage);
-                enemy.TakeDamage(Mathf.RoundToInt(damageDealt * playerDamageModifier));
-
-                if (burnDuration > 0)
-                {
-                    enemy.SetOnFire(burnDuration);
-                }
+                ApplyDamageToEnemy(enemy);
             }
         }
+    }
 
-        if (spawnFragments)
+    private void ApplyDamageToEnemy(EnemyStats enemy)
+    {
+        float playerDamageModifier = GameManager.Instance.GetPlayerController().GetDamageBoost();
+        float damageDealt = Random.Range(minDamage, maxDamage);
+        int finalDamage = Mathf.RoundToInt(damageDealt * playerDamageModifier);
+
+        enemy.TakeDamage(finalDamage);
+        if (burnDuration > 0)
         {
-            SpawnFireFragments();
+            enemy.SetOnFire(burnDuration);
         }
-
-        hasExploded = true;
-        CancelInvoke(nameof(DestroyGameObject));
-        StartCoroutine(AnimateLightAndDestroy());
     }
 
     private void SpawnFireFragments()
     {
         int numberOfFireballs = 5;
         float angleStep = 360f / numberOfFireballs;
-        float startAngle = 0f;
 
         for (int i = 0; i < numberOfFireballs; i++)
         {
-            float fireballDirectionAngle = startAngle + (angleStep * i);
+            float fireballDirectionAngle = angleStep * i;
             Vector3 fireballDirection = Quaternion.Euler(0, 0, fireballDirectionAngle) * Vector3.up;
             GameObject smallFireball = Instantiate(fireBallFragment, transform.position, Quaternion.identity);
             smallFireball.GetComponent<FireBall>().SetDirection(fireballDirection);
@@ -138,31 +154,26 @@ public class FireBall : MonoBehaviour
 
     private IEnumerator AnimateLightAndDestroy()
     {
-        float duration = 0.25f;
-        float time = 0;
-
-        while (time < duration)
-        {
-            float phase = time / duration;
-            light2D.pointLightOuterRadius = Mathf.Lerp(0.2f, 1.0f, phase);
-            time += Time.deltaTime;
-            yield return null;
-        }
-
-        time = 0;
-        while (time < duration)
-        {
-            float phase = time / duration;
-            light2D.pointLightOuterRadius = Mathf.Lerp(1.0f, 0.0f, phase);
-            time += Time.deltaTime;
-            yield return null;
-        }
+        yield return AnimateLight(0.2f, 1.0f, 0.25f);
+        yield return AnimateLight(1.0f, 0.0f, 0.25f);
 
         spriteRenderer.enabled = false;
         light2D.enabled = false;
 
         // Give time for audio to play
         Destroy(gameObject, 2f);
+    }
+
+    private IEnumerator AnimateLight(float startRadius, float endRadius, float duration)
+    {
+        float time = 0;
+        while (time < duration)
+        {
+            float phase = time / duration;
+            light2D.pointLightOuterRadius = Mathf.Lerp(startRadius, endRadius, phase);
+            time += Time.deltaTime;
+            yield return null;
+        }
     }
 
     private void DestroyGameObject()

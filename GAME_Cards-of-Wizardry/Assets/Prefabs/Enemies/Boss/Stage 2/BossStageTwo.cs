@@ -132,18 +132,14 @@ public abstract class BossStageTwo : MonoBehaviour
 
     protected IEnumerator DissolveEffect(bool isAppearing)
     {
-        float outlineThickness = isAppearing ? 0f : 0.4f;
-        float dissolveValue = isAppearing ? 0f : 1f;
-        float outlineStep = Time.unscaledDeltaTime * materialSwapSpeed * (isAppearing ? 1 : -1);
-        float dissolveStep = Time.unscaledDeltaTime * dissolveSpeed * (isAppearing ? 1 : -1);
-
         if (!isAppearing)
         {
             // Step 1: Outline _Thickness from 0.4 to 0
+            float outlineThickness = 0.4f;
             while (outlineThickness > 0f)
             {
-                outlineThickness = Mathf.Max(0f, outlineThickness - outlineStep);
-                outlineMaterial.SetFloat("_Thickness", outlineThickness);
+                outlineThickness -= Time.unscaledDeltaTime * materialSwapSpeed;
+                outlineMaterial.SetFloat("_Thickness", Mathf.Clamp(outlineThickness, 0f, 0.4f));
                 yield return null;
             }
 
@@ -151,9 +147,10 @@ public abstract class BossStageTwo : MonoBehaviour
             materialRenderer.material = dissolveMaterial;
 
             // Step 3: Dissolve _Fade goes from 1 to 0
+            float dissolveValue = 1f;
             while (dissolveValue > 0f)
             {
-                dissolveValue = Mathf.Max(0f, dissolveValue - dissolveStep);
+                dissolveValue -= Time.unscaledDeltaTime * dissolveSpeed;
                 dissolveMaterial.SetFloat("_Fade", dissolveValue);
                 yield return null;
             }
@@ -161,9 +158,10 @@ public abstract class BossStageTwo : MonoBehaviour
         else
         {
             // Step 5: Dissolve _Fade goes from 0 to 1
+            float dissolveValue = 0f;
             while (dissolveValue < 1f)
             {
-                dissolveValue = Mathf.Min(1f, dissolveValue + dissolveStep);
+                dissolveValue += Time.unscaledDeltaTime * dissolveSpeed;
                 dissolveMaterial.SetFloat("_Fade", dissolveValue);
                 yield return null;
             }
@@ -172,10 +170,11 @@ public abstract class BossStageTwo : MonoBehaviour
             materialRenderer.material = outlineMaterial;
 
             // Step 7: Outline _Thickness from 0 to 0.4
+            float outlineThickness = 0f;
             while (outlineThickness < 0.4f)
             {
-                outlineThickness = Mathf.Min(0.4f, outlineThickness + outlineStep);
-                outlineMaterial.SetFloat("_Thickness", outlineThickness);
+                outlineThickness += Time.unscaledDeltaTime * materialSwapSpeed;
+                outlineMaterial.SetFloat("_Thickness", Mathf.Clamp(outlineThickness, 0f, 0.4f));
                 yield return null;
             }
         }
