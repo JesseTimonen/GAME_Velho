@@ -96,11 +96,13 @@ public class FireStorm : MonoBehaviour
     private void ApplyDamageToPlayer(int finalDamage, float adjustedBurnDuration)
     {
         PlayerController playerController = GameManager.Instance.GetPlayerController();
-        playerController.TakeDamage(finalDamage);
+
+        float selfDamageReduction = castedByBoss ? 1 : 0.5f;
+        playerController.TakeDamage(Mathf.RoundToInt(finalDamage * selfDamageReduction));
 
         if (burnDuration > 0)
         {
-            playerController.SetOnFire(adjustedBurnDuration);
+            playerController.SetOnFire(adjustedBurnDuration * selfDamageReduction);
         }
     }
 
