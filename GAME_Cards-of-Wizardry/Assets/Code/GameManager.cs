@@ -3,12 +3,12 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private SpellBook spellBook;
+    [SerializeField] private DeckManager deckManager;
     [SerializeField] private Transform playerTransform;
     [SerializeField] private PlayerController playerController;
     [SerializeField] private LevelUpManager levelUpManager;
@@ -33,7 +33,6 @@ public class GameManager : MonoBehaviour
     private float survivalModifier = 1f;
     public bool isFearActive = false;
     private Coroutine fearCoroutine;
-
 
     private void Awake()
     {
@@ -64,36 +63,35 @@ public class GameManager : MonoBehaviour
         Invoke(nameof(ShowBasicUI), 2f);
     }
 
-
     public void ExitApplication()
     {
         Application.Quit();
     }
-
 
     private void Settings()
     {
         Application.targetFrameRate = 60;
     }
 
-
     public Transform GetPlayerTransform()
     {
         return playerTransform;
     }
-
 
     public PlayerController GetPlayerController()
     {
         return playerController;
     }
 
-
     public LevelUpManager GetLevelUpManager()
     {
         return levelUpManager;
     }
 
+    public DeckManager GetDeckManager()
+    {
+        return deckManager;
+    }
 
     public void HideBasicUI()
     {
@@ -101,7 +99,6 @@ public class GameManager : MonoBehaviour
         UIIcons.SetActive(false);
         UICards.SetActive(false);
     }
-
 
     public void ShowBasicUI()
     {
@@ -120,7 +117,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
     public void DisplayAdditionalHealthManaBars()
     {
         bool showHealthBar = PlayerPrefs.GetInt("ShowHPBar", 1) == 1 ? true : false;
@@ -130,7 +126,6 @@ public class GameManager : MonoBehaviour
         additionalHealthBar.SetActive(showHealthBar);
         additionalManaBar.SetActive(showManaBar);
     }
-
 
     public void SetSurvivalModifier(int survivalWave = 0)
     {
@@ -145,12 +140,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
     public float GetSurvivalModifier()
     {
         return survivalModifier;
     }
-
 
     public void ToggleFear(bool isActive)
     {
@@ -168,7 +161,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
     private IEnumerator DealFearDamage()
     {
         while (true)
@@ -178,13 +170,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
     public void RestartGame()
     {
         Time.timeScale = 1;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
-
 
     public void OpenLink(string url)
     {

@@ -83,5 +83,7 @@ public class SpellBook : ScriptableObject
 
         PlayerPrefs.SetInt("BasicMastery_" + spellName, 1);
         PlayerPrefs.Save();
+
+        GameManager.Instance.GetDeckManager().UpdateDeck();
     }
 }

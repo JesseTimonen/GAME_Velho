@@ -3,7 +3,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections;
 using TMPro;
-using System.Collections.Generic;
 
 public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -30,8 +29,8 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     [SerializeField] private TextMeshProUGUI manaCostText;
     [SerializeField] private TextMeshProUGUI cooldownDelayText;
 
+    private DeckManager deckManager;
     private GameObject castingAreaIndicatorInstance;
-    private List<int> spellWeightedIndices = new List<int>();
     private int currentSpellIndex;
     private Vector3 startPosition;
     private Transform originalParent;
@@ -49,11 +48,12 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
     private void Awake()
     {
+        deckManager = GameManager.Instance.GetDeckManager();
         cardImage = GetComponent<RawImage>();
         animator = GetComponent<Animator>();
         startPosition = transform.position;
         originalParent = transform.parent;
-        PickRandomSpell();
+        DrawNextCard();
     }
 
     private void OnEnable()
@@ -177,7 +177,7 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         }
         else
         {
-            if (masteryLevelTier == 1)
+         if (masteryLevelTier == 1)
             {
                 manaCostText.text = spellBook.spells[currentSpellIndex].basicManaCost.ToString();
                 cooldownDelayText.text = spellBook.spells[currentSpellIndex].basicCooldownDelay.ToString();
@@ -202,22 +202,9 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         spellDiscarded = false;
     }
 
-    private void PickRandomSpell()
+    private void DrawNextCard()
     {
-        spellWeightedIndices.Clear();
-
-        for (int i = 0; i < spellBook.spells.Length; i++)
-        {
-            if (spellBook.spells[i].isUnlocked)
-            {
-                for (int j = 0; j < spellBook.spells[i].amountInDeck; j++)
-                {
-                    spellWeightedIndices.Add(i);
-                }
-            }
-        }
-
-        currentSpellIndex = spellWeightedIndices[Random.Range(0, spellWeightedIndices.Count)];
+        currentSpellIndex = deckManager.DrawNextCard();
         masteryLevelTier = spellMastery.GetSpellMasteryLevel(spellBook.spells[currentSpellIndex].name);
 
         if (masteryLevelTier == 1)
@@ -401,7 +388,7 @@ public class SpellCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         cardImage.raycastTarget = true;
         isRecharging = false;
 
-        PickRandomSpell();
+        DrawNextCard();
     }
 
     private void UpdateCastingAreaPosition()
