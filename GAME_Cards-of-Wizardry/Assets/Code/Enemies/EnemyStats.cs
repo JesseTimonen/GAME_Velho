@@ -270,7 +270,7 @@ public class EnemyStats : MonoBehaviour
 
     private GameObject InstantiateFloatingText(GameObject prefab)
     {
-        GameObject instantiatedfloatingText = Instantiate(prefab, healthBar.transform.position, Quaternion.identity);
+        GameObject instantiatedfloatingText = Instantiate(prefab, canvas.transform.position, Quaternion.identity);
         instantiatedfloatingText.transform.SetParent(canvas);
         return instantiatedfloatingText;
     }

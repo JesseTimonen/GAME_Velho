@@ -20,6 +20,9 @@ public abstract class BossStageTwo : MonoBehaviour
     [SerializeField] protected float materialSwapSpeed = 5f;
     private Renderer materialRenderer;
 
+    [Header("Floating Text")]
+    [SerializeField] private Transform floatingTextSpawnPoint;
+
     protected EnemyStats stats;
     protected Transform player;
     protected Rigidbody2D rb;
@@ -182,9 +185,13 @@ public abstract class BossStageTwo : MonoBehaviour
 
     protected void FlipGameObject()
     {
-        Vector2 direction = (player.position - transform.position).normalized;
-        bool facingLeft = direction.x < 0;
+        bool facingLeft = (player.position - transform.position).normalized.x < 0;
         transform.rotation = Quaternion.Euler(0, facingLeft ? 0 : 180, 0);
+
+        // Flipping game object also flips the child canvas, so we need to flip canvas also to make a full rotation back to original rotation
+        Vector3 floatingTextEulerAngles = floatingTextSpawnPoint.localRotation.eulerAngles;
+        floatingTextEulerAngles.y = facingLeft ? 0 : 180;
+        floatingTextSpawnPoint.localRotation = Quaternion.Euler(floatingTextEulerAngles);
     }
 
     private void ExtendFurthestRadius()

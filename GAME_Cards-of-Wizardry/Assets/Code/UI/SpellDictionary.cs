@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,31 +46,51 @@ public class SpellDictionary : MonoBehaviour
             RawImage flawlessCardImage = entryFlawless.transform.Find("Card Image").GetComponent<RawImage>();
             RawImage masterfulCardImage = entryMasterful.transform.Find("Card Image").GetComponent<RawImage>();
 
+            TextMeshProUGUI basicManaCost = entryBasic.transform.Find("Mana Cost").GetComponent<TextMeshProUGUI>();
+            TextMeshProUGUI flawlessManaCost = entryFlawless.transform.Find("Mana Cost").GetComponent<TextMeshProUGUI>();
+            TextMeshProUGUI masterfulManaCost = entryMasterful.transform.Find("Mana Cost").GetComponent<TextMeshProUGUI>();
+
+            TextMeshProUGUI basicCooldown = entryBasic.transform.Find("Delay Cooldown").GetComponent<TextMeshProUGUI>();
+            TextMeshProUGUI flawlessCooldown = entryFlawless.transform.Find("Delay Cooldown").GetComponent<TextMeshProUGUI>();
+            TextMeshProUGUI masterfulCooldown = entryMasterful.transform.Find("Delay Cooldown").GetComponent<TextMeshProUGUI>();
+
             if (PlayerPrefs.GetInt("BasicMastery_" + spell.name, 0) == 1)
             {
                 basicCardImage.texture = spell.basicCardSprite;
+                basicManaCost.text = spell.basicManaCost.ToString();
+                basicCooldown.text = spell.basicCooldownDelay.ToString();
             }
             else
             {
                 basicCardImage.texture = basicUnlockedCard;
+                basicManaCost.text = "";
+                basicCooldown.text = "";
             }
 
             if (PlayerPrefs.GetInt("FlawlessMastery_" + spell.name, 0) == 1)
             {
                 flawlessCardImage.texture = spell.flawlessCardSprite;
+                masterfulManaCost.text = spell.flawlessManaCost.ToString();
+                masterfulCooldown.text = spell.flawlessCooldownDelay.ToString();
             }
             else
             {
                 flawlessCardImage.texture = flawlessUnlockedCard;
+                flawlessManaCost.text = "";
+                flawlessCooldown.text = "";
             }
 
             if (PlayerPrefs.GetInt("MasterfulMastery_" + spell.name, 0) == 1)
             {
                 masterfulCardImage.texture = spell.masterfulCardSprite;
+                masterfulManaCost.text = spell.masterfulManaCost.ToString();
+                masterfulCooldown.text = spell.masterfulCooldownDelay.ToString();
             }
             else
             {
                 masterfulCardImage.texture = masterfulUnlockedCard;
+                masterfulManaCost.text = "";
+                masterfulCooldown.text = "";
             }
 
             basicCardImage.enabled = true;
