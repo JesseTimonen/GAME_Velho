@@ -8,6 +8,7 @@ public class Boar : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
     private Animator animator;
+    private BoxCollider2D normalCollider;
     private CircleCollider2D attackCollider;
 
     [Header("Movement")]
@@ -30,6 +31,7 @@ public class Boar : MonoBehaviour
     [SerializeField] private int maxDamage = 25;
     [SerializeField] private float knockbackForce = 2f;
     [SerializeField] private float knockbackDuration = 0.3f;
+    private bool playerHit = false;
 
     private void Awake()
     {
@@ -37,9 +39,8 @@ public class Boar : MonoBehaviour
         animator = GetComponent<Animator>();
         stats = GetComponent<EnemyStats>();
         rb = GetComponent<Rigidbody2D>();
+        normalCollider = GetComponent<BoxCollider2D>();
         attackCollider = GetComponent<CircleCollider2D>();
-        attackCollider.isTrigger = true;
-        attackCollider.enabled = false;
     }
 
     private void Start()
@@ -78,6 +79,7 @@ public class Boar : MonoBehaviour
         if (recoveryTimer <= 0)
         {
             isRecovering = false;
+            playerHit = false;
             animator.SetBool("isWalking", true);
         }
     }
@@ -94,6 +96,7 @@ public class Boar : MonoBehaviour
             recoveryTimer = recoveryTime;
             animator.SetBool("isRushing", false);
             attackCollider.enabled = false;
+            normalCollider.enabled = true;
         }
     }
 
@@ -142,9 +145,11 @@ public class Boar : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (isRushing && other.CompareTag("Player") && !stats.IsFrozen())
+        if (isRushing && other.CompareTag("Player") && !stats.IsFrozen() && !playerHit)
         {
+            playerHit = true;
             ApplyDamageToPlayer();
+            normalCollider.enabled = false;
         }
     }
 
@@ -155,13 +160,26 @@ public class Boar : MonoBehaviour
 
         // Knockback player
         Vector2 knockbackDirection = (player.position - transform.position).normalized;
+
+        // Ensure knockback direction is not too close to the rush direction
+        float angleBetween = Vector2.Angle(knockbackDirection, rushDirection);
+        float allowedAngle = 30f; // degrees of allowed deviation
+
+        if (angleBetween < allowedAngle)
+        {
+            // Adjust knockback direction to be outside the allowed angle range
+            knockbackDirection = Quaternion.Euler(0, 0, allowedAngle) * rushDirection;
+        }
+
         playerController.Knockback(knockbackDirection, knockbackForce, knockbackDuration);
     }
+
 
     // Called from animation event
     public void EnemyDied()
     {
         attackCollider.enabled = false;
+        normalCollider.enabled = false;
         rb.velocity = Vector2.zero;
     }
 }
