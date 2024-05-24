@@ -104,7 +104,7 @@ public class Bee : MonoBehaviour
 
     private void HandleAggressiveState(float distanceToPlayer)
     {
-        if (distanceToPlayer > shootingRange * 2)
+        if (distanceToPlayer > shootingRange * 1.5f)
         {
             ExitAggressiveMode();
         }

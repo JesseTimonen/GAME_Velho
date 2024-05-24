@@ -97,7 +97,7 @@ public class Wizard : MonoBehaviour
         {
             teleportTimer -= Time.deltaTime;
 
-            if (teleportTimer <= 0 && !teleportDisabled && distanceToPlayer <= furthestRadius)
+            if (teleportTimer <= 0 && !teleportDisabled)
             {
                 teleportTimer = Random.Range(teleportCooldownMin, teleportCooldownMax);
                 StartCoroutine(Teleport());
@@ -166,11 +166,52 @@ public class Wizard : MonoBehaviour
             isTeleporting = true;
             boxCollider.enabled = false;
             yield return StartCoroutine(DissolveEffect(false));
-            transform.position = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
+
+            float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+            Vector2 teleportPosition = Vector2.zero;
+
+            if (distanceToPlayer < closestRadius)
+            {
+                // Away from the player
+                teleportPosition = TeleportInHalfCircle(false);
+            }
+            else if (distanceToPlayer >= closestRadius && distanceToPlayer <= furthestRadius)
+            {
+                teleportPosition = TeleportRandomPosition();
+            }
+            else
+            {
+                // Towards the player
+                teleportPosition = TeleportInHalfCircle(true);
+            }
+
+            transform.position = teleportPosition;
             yield return StartCoroutine(DissolveEffect(true));
             boxCollider.enabled = true;
             isTeleporting = false;
         }
+    }
+
+    private Vector2 TeleportInHalfCircle(bool towardsPlayer)
+    {
+        Vector2 directionToPlayer = (player.position - transform.position).normalized;
+
+        while (true)
+        {
+            Vector2 randomPoint = (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
+            Vector2 directionToRandomPoint = (randomPoint - (Vector2)transform.position).normalized;
+
+            float dotProduct = Vector2.Dot(directionToPlayer, directionToRandomPoint);
+            if ((towardsPlayer && dotProduct > 0) || (!towardsPlayer && dotProduct < 0))
+            {
+                return randomPoint;
+            }
+        }
+    }
+
+    private Vector2 TeleportRandomPosition()
+    {
+        return (Vector2)transform.position + Random.insideUnitCircle * teleportRadius;
     }
 
     private IEnumerator DissolveEffect(bool isAppearing)

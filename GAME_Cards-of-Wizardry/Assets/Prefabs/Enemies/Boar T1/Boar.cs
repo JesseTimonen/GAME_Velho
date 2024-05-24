@@ -96,7 +96,6 @@ public class Boar : MonoBehaviour
             recoveryTimer = recoveryTime;
             animator.SetBool("isRushing", false);
             attackCollider.enabled = false;
-            normalCollider.enabled = true;
         }
     }
 
@@ -149,7 +148,6 @@ public class Boar : MonoBehaviour
         {
             playerHit = true;
             ApplyDamageToPlayer();
-            normalCollider.enabled = false;
         }
     }
 

@@ -62,16 +62,7 @@ public class WaveSpawner : MonoBehaviour
         // Start next wave if time ends or all enemies have been killed
         if (waveTimer >= wave.waveDuration || (enemyParent.childCount == 0 && waveTimer >= wave.spawnDuration))
         {
-            // Fast forward to 10s left until next wave if all enemies have been killed
-            if (enemyParent.childCount == 0 && waveTimer >= wave.spawnDuration && waveTimer < wave.waveDuration - 5f)
-            {
-                waveTimer = wave.waveDuration - 5f;
-            }
-
-            if (waveTimer >= wave.waveDuration)
-            {
-                StartNextWave();
-            }
+            StartNextWave();
         }
 
         // Custom spawns
