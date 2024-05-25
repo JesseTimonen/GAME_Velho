@@ -390,11 +390,8 @@ public class PlayerController : MonoBehaviour
         shieldTimer.InitializeTimer();
         shieldDamageTimer.InitializeTimer();
 
-        if (!shieldParticles.isPlaying)
-        {
-            shieldParticles.Play();
-            shieldInnerParticles.Play();
-        }
+        shieldParticles.Play();
+        shieldInnerParticles.Play();
     }
 
     public void RemoveShield()
