@@ -195,20 +195,29 @@ public class PlayerController : MonoBehaviour
         if (Mathf.Abs(distance) > 0.5f)
         {
             Vector3 healthBarEulerAngles = additionalHealthBarCanvas.localRotation.eulerAngles;
+            Vector3 floatingTextEulerAngles = floatingDamageSpawnPoint.localRotation.eulerAngles;
 
             if (distance > 0 && !isLookingRight)
             {
                 transform.rotation = Quaternion.Euler(0, 0, 0);
+
                 healthBarEulerAngles.y = 180;
                 additionalHealthBarCanvas.localRotation = Quaternion.Euler(healthBarEulerAngles);
+
+                floatingTextEulerAngles.y = 180;
+                floatingDamageSpawnPoint.localRotation = Quaternion.Euler(floatingTextEulerAngles);
 
                 isLookingRight = true;
             }
             else if (distance < 0 && isLookingRight)
             {
                 transform.rotation = Quaternion.Euler(0, 180, 0);
+
                 healthBarEulerAngles.y = 0;
                 additionalHealthBarCanvas.localRotation = Quaternion.Euler(healthBarEulerAngles);
+
+                floatingTextEulerAngles.y = 0;
+                floatingDamageSpawnPoint.localRotation = Quaternion.Euler(floatingTextEulerAngles);
 
                 isLookingRight = false;
             }
