@@ -22,6 +22,7 @@ public class Leaderboards : MonoBehaviour
     [SerializeField] private TextMeshProUGUI speedrunTimerText;
     private float timeElapsed = 0f;
     private bool speedrunTimerStarted = false;
+    private bool speedrunTimerPosted = false;
 
     [Header("Leaderboard Display")]
     [SerializeField] private TextMeshProUGUI speedrunScoresText;
@@ -129,12 +130,17 @@ public class Leaderboards : MonoBehaviour
 
     private bool ShouldPostScores()
     {
-        if (string.IsNullOrEmpty(PlayerPrefs.GetString("Username", "")))
+        if (GameManager.Instance.hasPlayerDied)
         {
             return false;
         }
 
         if (PlayerPrefs.GetInt("AutoPostScores", 1) == 0)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(PlayerPrefs.GetString("Username", "")))
         {
             return false;
         }
@@ -145,7 +151,12 @@ public class Leaderboards : MonoBehaviour
     private void PostSpeedrunScore()
     {
         if (!ShouldPostScores()) return;
-        StartCoroutine(PostScoreCoroutine("speedrun", timeElapsed));
+
+        if (!speedrunTimerPosted)
+        {
+            speedrunTimerPosted = true;
+            StartCoroutine(PostScoreCoroutine("speedrun", timeElapsed));
+        }
     }
 
     public void PostRoundScore(int waveNumber)
