@@ -40,6 +40,9 @@ public class EnemyStats : MonoBehaviour
     private bool isFrozen = false;
     private float reflectIntensity = 0f;
 
+    public event System.Action OnFreezeEvent;
+    public event System.Action OnUnfreezeEvent;
+
     private void Start()
     {
         animator = GetComponent<Animator>();
@@ -249,8 +252,9 @@ public class EnemyStats : MonoBehaviour
 
         if (freezeImmunity) return;
 
-        spriteRenderer.color = Color.blue;
+        OnFreezeEvent?.Invoke();
         isFrozen = true;
+        spriteRenderer.color = Color.blue;
 
         StartOrRestartCoroutine("freeze", UnfreezeAfterTime(duration / GameManager.Instance.GetSurvivalModifier()));
     }
@@ -258,6 +262,7 @@ public class EnemyStats : MonoBehaviour
     private IEnumerator UnfreezeAfterTime(float duration)
     {
         yield return new WaitForSeconds(duration);
+        OnUnfreezeEvent?.Invoke();
         isFrozen = false;
         ResetSpriteColor();
     }

@@ -47,6 +47,29 @@ public class Boar : MonoBehaviour
     {
         player = GameManager.Instance.GetPlayerTransform();
         playerController = GameManager.Instance.GetPlayerController();
+        stats.OnFreezeEvent += OnFreeze;
+        stats.OnUnfreezeEvent += OnUnfreeze;
+    }
+
+    private void OnDestroy()
+    {
+        stats.OnFreezeEvent -= OnFreeze;
+        stats.OnUnfreezeEvent -= OnUnfreeze;
+    }
+
+    private void OnFreeze()
+    {
+        isRushing = false;
+        isPreRushing = false;
+        attackCollider.enabled = false;
+        rb.velocity = Vector2.zero;
+        animator.SetBool("isRushing", false);
+        animator.SetBool("isWalking", false);
+    }
+
+    private void OnUnfreeze()
+    {
+        animator.SetBool("isWalking", true);
     }
 
     private void Update()
@@ -171,7 +194,6 @@ public class Boar : MonoBehaviour
 
         playerController.Knockback(knockbackDirection, knockbackForce, knockbackDuration);
     }
-
 
     // Called from animation event
     public void EnemyDied()
