@@ -77,6 +77,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Slider additionalManaSlider;
 
     [Header("Floating numbers")]
+    [SerializeField] private Transform floatingDamageSpawnPoint;
     [SerializeField] private GameObject healFloatingPrefab;
     [SerializeField] private GameObject manaFloatingPrefab;
     [SerializeField] private GameObject damageFloatingPrefab;
@@ -313,7 +314,7 @@ public class PlayerController : MonoBehaviour
     {
         StopCoroutineIfExists(ref freezeCoroutine);
 
-        GameObject instantiatedfloatingText = InstantiateFloatingText(freezeFloatingPrefab);
+        InstantiateFloatingText(freezeFloatingPrefab);
 
         isFrozen = true;
         freezeIcon.SetActive(true);
@@ -713,8 +714,8 @@ public class PlayerController : MonoBehaviour
 
     private GameObject InstantiateFloatingText(GameObject prefab)
     {
-        GameObject instantiatedfloatingText = Instantiate(prefab, additionalHealthSlider.transform.position, Quaternion.identity);
-        instantiatedfloatingText.transform.SetParent(canvas);
+        GameObject instantiatedfloatingText = Instantiate(prefab, floatingDamageSpawnPoint.position, Quaternion.identity);
+        instantiatedfloatingText.transform.SetParent(floatingDamageSpawnPoint);
         return instantiatedfloatingText;
     }
 
